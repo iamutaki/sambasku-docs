@@ -1,0 +1,589 @@
+// ============================================================
+// LANGUAGE
+// ============================================================
+
+Table languages {
+  id varchar(26) [pk]
+
+  code varchar(20) [not null, unique]
+  name varchar(100) [not null]
+  native_name varchar(100)
+
+  description text
+
+  is_active boolean [not null, default: true]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+}
+
+
+// ============================================================
+// DIALECT
+// ============================================================
+
+Table dialects {
+  id varchar(26) [pk]
+
+  language_id varchar(26) [not null, ref: > languages.id]
+
+  code varchar(50) [not null]
+  name varchar(100) [not null]
+
+  description text
+
+  is_active boolean [not null, default: true]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  Indexes {
+    (language_id, code) [unique]
+  }
+}
+
+
+// ============================================================
+// USERS
+// ============================================================
+
+Table users {
+  id varchar(26) [pk]
+
+  username varchar(100) [not null, unique]
+  email varchar(255) [not null, unique]
+  password_hash varchar(255) [not null]
+
+  // administrator
+  // editor
+  // reviewer
+  // contributor
+  role varchar(50) [not null, default: 'contributor']
+
+  is_active boolean [not null, default: true]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  deleted_at timestamp
+}
+
+
+// ============================================================
+// WORD CLASSES
+// ============================================================
+
+Table word_classes {
+  id varchar(26) [pk]
+
+  parent_id varchar(26) [ref: > word_classes.id]
+
+  code varchar(50) [not null, unique]
+  name varchar(100) [not null]
+
+  description text
+
+  created_at timestamp [not null]
+  updated_at timestamp
+}
+
+
+// ============================================================
+// WORD / LEXEME
+// ============================================================
+
+Table words {
+  id varchar(26) [pk]
+
+  language_id varchar(26) [not null, ref: > languages.id]
+
+  lemma varchar(255) [not null]
+
+  notes text
+
+  created_by varchar(26) [ref: > users.id]
+  updated_by varchar(26) [ref: > users.id]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
+  Indexes {
+    (language_id, lemma)
+  }
+}
+
+
+// ============================================================
+// WORD VARIANTS
+// ============================================================
+
+Table word_variants {
+  id varchar(26) [pk]
+
+  word_id varchar(26) [not null, ref: > words.id]
+
+  dialect_id varchar(26) [ref: > dialects.id]
+
+  form varchar(255) [not null]
+
+  variant_type varchar(50) [not null, default: 'alternative']
+
+  notes text
+
+  created_by varchar(26) [ref: > users.id]
+  updated_by varchar(26) [ref: > users.id]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
+  Indexes {
+    (word_id, form, dialect_id) [unique]
+  }
+}
+
+
+// ============================================================
+// MEANINGS / SENSES
+// ============================================================
+
+Table meanings {
+  id varchar(26) [pk]
+
+  word_id varchar(26) [not null, ref: > words.id]
+
+  word_class_id varchar(26) [ref: > word_classes.id]
+
+  definition text [not null]
+
+  order_index int [not null, default: 0]
+
+  notes text
+
+  created_by varchar(26) [ref: > users.id]
+  updated_by varchar(26) [ref: > users.id]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
+  Indexes {
+    (word_id, order_index)
+  }
+}
+
+
+// ============================================================
+// MEANING TRANSLATIONS
+// ============================================================
+
+Table meaning_translations {
+  id varchar(26) [pk]
+
+  meaning_id varchar(26) [not null, ref: > meanings.id]
+
+  language_id varchar(26) [not null, ref: > languages.id]
+
+  translation_text text [not null]
+
+  translation_type varchar(50) [not null, default: 'direct']
+
+  notes text
+
+  created_by varchar(26) [ref: > users.id]
+  updated_by varchar(26) [ref: > users.id]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
+  Indexes {
+    (meaning_id, language_id, translation_text) [unique]
+  }
+}
+
+
+// ============================================================
+// EXAMPLES
+// ============================================================
+
+Table examples {
+  id varchar(26) [pk]
+
+  meaning_id varchar(26) [not null, ref: > meanings.id]
+
+  source_language_id varchar(26) [not null, ref: > languages.id]
+  source_sentence text [not null]
+
+  target_language_id varchar(26) [ref: > languages.id]
+  target_sentence text
+
+  source_type varchar(50)
+  source_reference text
+
+  notes text
+
+  created_by varchar(26) [ref: > users.id]
+  updated_by varchar(26) [ref: > users.id]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+}
+
+
+// ============================================================
+// CATEGORIES
+// ============================================================
+
+Table categories {
+  id varchar(26) [pk]
+
+  parent_id varchar(26) [ref: > categories.id]
+
+  name varchar(100) [not null]
+  description text
+
+  created_at timestamp [not null]
+  updated_at timestamp
+}
+
+
+// ============================================================
+// WORD ↔ CATEGORY
+// ============================================================
+
+Table word_categories {
+  word_id varchar(26) [not null, ref: > words.id]
+  category_id varchar(26) [not null, ref: > categories.id]
+
+  Indexes {
+    (word_id, category_id) [pk]
+  }
+}
+
+
+// ============================================================
+// LEXICAL RELATIONS
+// ============================================================
+
+Table lexical_relations {
+  id varchar(26) [pk]
+
+  source_word_id varchar(26) [not null, ref: > words.id]
+  target_word_id varchar(26) [not null, ref: > words.id]
+
+  relation_type varchar(50) [not null]
+
+  notes text
+
+  created_by varchar(26) [ref: > users.id]
+
+  created_at timestamp [not null]
+
+  Indexes {
+    (source_word_id, target_word_id, relation_type) [unique]
+  }
+}
+
+
+// ============================================================
+// PRONUNCIATIONS
+// ============================================================
+
+Table pronunciations {
+  id varchar(26) [pk]
+
+  word_id varchar(26) [not null, ref: > words.id]
+
+  dialect_id varchar(26) [ref: > dialects.id]
+
+  notation varchar(50) [not null, default: 'ipa']
+  value varchar(500) [not null]
+
+  audio_url text
+
+  speaker_name varchar(255)
+
+  notes text
+
+  created_by varchar(26) [ref: > users.id]
+  updated_by varchar(26) [ref: > users.id]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
+  Indexes {
+    (word_id, dialect_id, notation, value) [unique]
+  }
+}
+
+
+// ============================================================
+// SOURCES
+// ============================================================
+
+Table sources {
+  id varchar(26) [pk]
+
+  source_type varchar(50) [not null]
+
+  title varchar(500)
+  author varchar(255)
+  publisher varchar(255)
+
+  url text
+
+  publication_date date
+
+  notes text
+
+  created_by varchar(26) [ref: > users.id]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+}
+
+
+// ============================================================
+// SOURCE ↔ WORD / MEANING / EXAMPLE
+// ============================================================
+
+Table word_sources {
+  word_id varchar(26) [not null, ref: > words.id]
+  source_id varchar(26) [not null, ref: > sources.id]
+
+  notes text
+
+  Indexes {
+    (word_id, source_id) [pk]
+  }
+}
+
+Table meaning_sources {
+  meaning_id varchar(26) [not null, ref: > meanings.id]
+  source_id varchar(26) [not null, ref: > sources.id]
+
+  notes text
+
+  Indexes {
+    (meaning_id, source_id) [pk]
+  }
+}
+
+Table example_sources {
+  example_id varchar(26) [not null, ref: > examples.id]
+  source_id varchar(26) [not null, ref: > sources.id]
+
+  notes text
+
+  Indexes {
+    (example_id, source_id) [pk]
+  }
+}
+
+
+// ============================================================
+// GENERAL TRANSLATIONS (translation memory)
+// ============================================================
+
+Table translations {
+  id varchar(26) [pk]
+
+  source_text text [not null]
+  source_language_id varchar(26) [not null, ref: > languages.id]
+
+  target_text text [not null]
+  target_language_id varchar(26) [not null, ref: > languages.id]
+
+  // BARU: skor kepercayaan hasil terjemahan
+  // - null jika terjemahan manual/manusia
+  // - 0.00 - 1.00 jika berasal dari mesin/otomatis
+  confidence_score decimal(3,2)
+
+  // BARU: asal terjemahan
+  // human
+  // rule_based
+  // machine
+  translation_source varchar(20) [not null, default: 'human']
+
+  created_by varchar(26) [ref: > users.id]
+  updated_by varchar(26) [ref: > users.id]
+
+  is_verified boolean [not null, default: false]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  deleted_at timestamp
+}
+
+
+// ============================================================
+// BARU: TRANSLATION TOKENS
+//
+// Memecah kalimat pada `translations` menjadi kata per kata,
+// dihubungkan ke entri kamus (`words`) bila cocok.
+// Berguna untuk translator berbasis kamus/rule-based di fase awal
+// sebelum ada model NLP penuh.
+// ============================================================
+
+Table translation_tokens {
+  id varchar(26) [pk]
+
+  translation_id varchar(26) [not null, ref: > translations.id]
+
+  // Urutan token dalam kalimat sumber
+  position int [not null]
+
+  token_text varchar(255) [not null]
+
+  // Diisi jika token berhasil dicocokkan ke entri kamus
+  word_id varchar(26) [ref: > words.id]
+  meaning_id varchar(26) [ref: > meanings.id]
+
+  // exact
+  // fuzzy
+  // unmatched
+  match_type varchar(20) [not null, default: 'unmatched']
+
+  created_at timestamp [not null]
+
+  Indexes {
+    (translation_id, position)
+  }
+}
+
+
+// ============================================================
+// BARU: TRANSLATION REQUESTS
+//
+// Log setiap permintaan penerjemahan yang masuk (dari user atau API),
+// terlepas dari apakah hasilnya tersimpan/diverifikasi di `translations`.
+// Berguna untuk analitik, debugging, dan training data di fase lanjut.
+// ============================================================
+
+Table translation_requests {
+  id varchar(26) [pk]
+
+  user_id varchar(26) [ref: > users.id]
+
+  input_text text [not null]
+  source_language_id varchar(26) [not null, ref: > languages.id]
+  target_language_id varchar(26) [not null, ref: > languages.id]
+
+  output_text text
+
+  // Jika hasil request ini diikat ke entri translation_memory
+  translation_id varchar(26) [ref: > translations.id]
+
+  // pending
+  // completed
+  // failed
+  status varchar(20) [not null, default: 'pending']
+
+  // dictionary_lookup
+  // rule_based
+  // machine_model
+  method varchar(30)
+
+  response_time_ms int
+
+  created_at timestamp [not null]
+
+  Indexes {
+    (user_id, created_at)
+    (source_language_id, target_language_id)
+  }
+}
+
+
+// ============================================================
+// CONTRIBUTIONS
+// ============================================================
+
+Table contributions {
+  id varchar(26) [pk]
+
+  user_id varchar(26) [not null, ref: > users.id]
+
+  entity_type varchar(50) [not null]
+  entity_id varchar(26) [not null]
+
+  action varchar(50) [not null]
+
+  description text
+
+  created_at timestamp [not null]
+
+  Indexes {
+    (user_id, created_at)
+    (entity_type, entity_id)
+  }
+}
+
+
+// ============================================================
+// CONTRIBUTION REVIEWS
+// ============================================================
+
+Table contribution_reviews {
+  id varchar(26) [pk]
+
+  contribution_id varchar(26) [not null, ref: > contributions.id]
+
+  reviewer_id varchar(26) [not null, ref: > users.id]
+
+  status varchar(30) [not null, default: 'pending']
+
+  comment text
+
+  created_at timestamp [not null]
+
+  Indexes {
+    (contribution_id, reviewer_id)
+  }
+}
+
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
+
+Table audit_logs {
+  id varchar(26) [pk]
+
+  user_id varchar(26) [ref: > users.id]
+
+  action varchar(50) [not null]
+
+  entity_type varchar(100) [not null]
+  entity_id varchar(26) [not null]
+
+  old_data json
+  new_data json
+
+  request_id varchar(100)
+
+  created_at timestamp [not null]
+
+  Indexes {
+    (entity_type, entity_id, created_at)
+    (user_id, created_at)
+    request_id
+  }
+}
