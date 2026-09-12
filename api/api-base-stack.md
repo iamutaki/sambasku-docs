@@ -8,22 +8,24 @@ struktur dan konvensi di sini, jadi tidak perlu dijelaskan ulang tiap kali.
 
 ## 1. Tech Stack
 
-| Layer | Pilihan | Alasan |
-|---|---|---|
-| Runtime | Node.js (v20+ LTS) | Kompatibilitas library terluas, ekosistem matang |
-| Framework | Hono | Ringan, cepat, tidak memaksa struktur (cocok clean architecture) |
-| Bahasa | TypeScript | Type safety, wajib untuk clean architecture yang solid |
-| ORM/Query Builder | Drizzle ORM + drizzle-kit | Type-safe, ringan, migrasi eksplisit, cocok dgn Hono |
-| DB Driver | `pg` via `drizzle-orm/node-postgres` | Koneksi TCP standar PostgreSQL — **generik, no vendor lock-in** (lihat Section 9) |
-| Database | PostgreSQL (hosting: Neon) | Sesuai skema DBML yang sudah dirancang; provider bisa diganti kapan saja |
-| Validasi & API Docs | Zod + `@hono/zod-openapi` | Validasi schema-first, sekaligus generate OpenAPI spec otomatis dari schema yang sama |
-| API Reference UI | Scalar (`@scalar/hono-api-reference`) | Render dokumentasi API interaktif dari OpenAPI spec, auto-update tiap endpoint baru |
-| Auth | JWT (RS256) via `jose` | Access + refresh token, lihat `00-api-auth.md` |
-| ID Generation | `ulid` | ULID — time-sortable, URL-safe, 26 char, no DB sequence needed (lihat Section 19) |
-| Package manager | pnpm | Instalasi cepat, hemat disk, cocok untuk struktur modular |
-| Testing | Vitest (unit + integration + E2E) | Cepat, native ESM/TS support — lihat Section 10 untuk strategi lengkap |
-| HTTP client (fungsional) | Bruno — koleksi di repo `http/` | Plain file `.bru` tersimpan di git, bisa dijalankan CLI (CI) & GUI — lihat Section 20 |
-| Lint/Format | ESLint + Prettier | Konsistensi kode antar kontributor |
+| Layer                    | Pilihan                                        | Alasan                                                                                      |
+| ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Runtime                  | Node.js (v20+ LTS)                             | Kompatibilitas library terluas, ekosistem matang                                            |
+| Framework                | Hono                                           | Ringan, cepat, tidak memaksa struktur (cocok clean architecture)                            |
+| Bahasa                   | TypeScript                                     | Type safety, wajib untuk clean architecture yang solid                                      |
+| ORM/Query Builder        | Drizzle ORM + drizzle-kit                      | Type-safe, ringan, migrasi eksplisit, cocok dgn Hono                                        |
+| DB Driver                | `pg` via `drizzle-orm/node-postgres`       | Koneksi TCP standar PostgreSQL —**generik, no vendor lock-in** (lihat Section 9)     |
+| Database                 | PostgreSQL (hosting: Neon)                     | Sesuai skema DBML yang sudah dirancang; provider bisa diganti kapan saja                    |
+| Validasi & API Docs      | Zod +`@hono/zod-openapi`                     | Validasi schema-first, sekaligus generate OpenAPI spec otomatis dari schema yang sama       |
+| API Reference UI         | Scalar (`@scalar/hono-api-reference`)        | Render dokumentasi API interaktif dari OpenAPI spec, auto-update tiap endpoint baru         |
+| Auth                     | JWT (RS256) via`jose`                        | Access + refresh token, lihat`00-api-auth.md`                                             |
+| ID Generation            | `ulid`                                       | ULID — time-sortable, URL-safe, 26 char, no DB sequence needed (lihat Section 19)          |
+| Package manager          | pnpm                                           | Instalasi cepat, hemat disk, cocok untuk struktur modular                                   |
+| Testing                  | Vitest (unit + integration + E2E)              | Cepat, native ESM/TS support — lihat Section 10 untuk strategi lengkap                     |
+| HTTP client (fungsional) | Bruno — koleksi di repo`http/`              | Plain file`.bru` tersimpan di git, bisa dijalankan CLI (CI) & GUI — lihat Section 20     |
+| Audit trail              | tabel`audit_logs` + modul `modules/audit/` | Setiap mutasi data tercatat siapa-kapan-apa, bisa ditelusuri — lihat Section 21            |
+| Image hosting            | ImageKit via`ImageStoragePort`               | Wrapper provider-agnostic — ganti provider tinggal ganti impl (pola port, lihat Section 8) |
+| Lint/Format              | ESLint + Prettier                              | Konsistensi kode antar kontributor                                                          |
 
 ---
 
@@ -197,18 +199,18 @@ jelas.
 
 ## 5. Konvensi Penamaan File
 
-| Tipe | Konvensi | Contoh |
-|---|---|---|
-| Entity | `*.entity.ts` | `word.entity.ts` |
-| Use case | `*.use-case.ts` | `create-word.use-case.ts` |
-| Repository interface | `*.repository.ts` | `word.repository.ts` |
-| Repository implementasi | `*.repository.impl.ts` | `word.repository.impl.ts` |
-| DTO | `*.dto.ts` | `create-word.dto.ts` |
-| Validator (Zod) | `*.validator.ts` | `create-word.validator.ts` |
-| Route | `*.routes.ts` | `word.routes.ts` |
-| Controller | `*.controller.ts` | `word.controller.ts` |
-| Port/interface service | `*.port.ts` | `token-service.port.ts` |
-| Folder modul | `modules/<nama-fitur>/` (singular, kebab/lowercase) | `modules/word/`, `modules/auth/` |
+| Tipe                    | Konvensi                                              | Contoh                               |
+| ----------------------- | ----------------------------------------------------- | ------------------------------------ |
+| Entity                  | `*.entity.ts`                                       | `word.entity.ts`                   |
+| Use case                | `*.use-case.ts`                                     | `create-word.use-case.ts`          |
+| Repository interface    | `*.repository.ts`                                   | `word.repository.ts`               |
+| Repository implementasi | `*.repository.impl.ts`                              | `word.repository.impl.ts`          |
+| DTO                     | `*.dto.ts`                                          | `create-word.dto.ts`               |
+| Validator (Zod)         | `*.validator.ts`                                    | `create-word.validator.ts`         |
+| Route                   | `*.routes.ts`                                       | `word.routes.ts`                   |
+| Controller              | `*.controller.ts`                                   | `word.controller.ts`               |
+| Port/interface service  | `*.port.ts`                                         | `token-service.port.ts`            |
+| Folder modul            | `modules/<nama-fitur>/` (singular, kebab/lowercase) | `modules/word/`, `modules/auth/` |
 
 ---
 
@@ -217,13 +219,13 @@ jelas.
 - [ ] Inisialisasi project (`pnpm init`, install Hono, Drizzle, Zod, dll)
 - [ ] Setup `drizzle.config.ts` + koneksi PostgreSQL
 - [ ] Generate schema Drizzle terpusat (`shared/database/drizzle/schema/`)
-      dari file `.dbml` yang sudah dibuat
+  dari file `.dbml` yang sudah dibuat
 - [ ] Setup environment variables (`.env`) — DB connection string, JWT
-      private/public key
+  private/public key
 - [ ] Setup `error-handler.middleware.ts` global untuk Hono di `shared/middlewares/`
 - [ ] Buat folder `modules/` kosong dengan modul pertama: `auth/` dan `word/`
 - [ ] Setup `main.ts` sebagai composition root yang me-register semua
-      route dari tiap modul ke instance Hono
+  route dari tiap modul ke instance Hono
 
 ---
 
@@ -278,12 +280,12 @@ sama seperti perubahan kode aplikasi biasa.
 
 ### Command Referensi
 
-| Command | Fungsi |
-|---|---|
-| `pnpm drizzle-kit generate` | Generate file migrasi SQL dari perubahan schema |
-| `pnpm drizzle-kit migrate` | Jalankan migrasi yang belum diterapkan ke database |
-| `pnpm drizzle-kit studio` | Buka GUI ringan untuk lihat isi database (dev only) |
-| `pnpm drizzle-kit drop` | Hapus migration file terakhir yang belum dijalankan (kalau salah generate) |
+| Command                       | Fungsi                                                                     |
+| ----------------------------- | -------------------------------------------------------------------------- |
+| `pnpm drizzle-kit generate` | Generate file migrasi SQL dari perubahan schema                            |
+| `pnpm drizzle-kit migrate`  | Jalankan migrasi yang belum diterapkan ke database                         |
+| `pnpm drizzle-kit studio`   | Buka GUI ringan untuk lihat isi database (dev only)                        |
+| `pnpm drizzle-kit drop`     | Hapus migration file terakhir yang belum dijalankan (kalau salah generate) |
 
 ---
 
@@ -345,6 +347,10 @@ Neon di staging/production) ada di Section 17.
   informasi soal provider mana yang sedang dipakai
 - ✅ File migration SQL yang di-generate Drizzle Kit adalah SQL standar
   PostgreSQL — portable ke provider mana pun tanpa modifikasi
+- ✅ Provider eksternal (SMTP, ImageKit, dst) HANYA boleh dipanggil lewat
+  port di `application/ports/` + implementasi di `infrastructure/`
+  (pola `MailerPort`, `ImageStoragePort`) — kode hanya bergantung pada
+  interface, ganti provider = ganti satu file impl
 
 ---
 
@@ -357,10 +363,10 @@ saling tidak sinkron.
 
 ### Library yang Dipakai
 
-| Library | Fungsi |
-|---|---|
-| `@hono/zod-openapi` | Pengganti Hono biasa untuk route — schema Zod yang sama dipakai untuk validasi request/response DAN generate OpenAPI spec |
-| `@scalar/hono-api-reference` | Middleware Hono yang render UI dokumentasi interaktif dari OpenAPI spec (menggantikan Swagger UI) |
+| Library                        | Fungsi                                                                                                                     |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `@hono/zod-openapi`          | Pengganti Hono biasa untuk route — schema Zod yang sama dipakai untuk validasi request/response DAN generate OpenAPI spec |
+| `@scalar/hono-api-reference` | Middleware Hono yang render UI dokumentasi interaktif dari OpenAPI spec (menggantikan Swagger UI)                          |
 
 ### Perubahan pada Struktur Validator
 
@@ -448,6 +454,7 @@ entri baru di dokumentasi tanpa perlu ditulis manual.
 
 Mulai sekarang, setiap prompt endpoint baru (yang sudah ada maupun akan
 datang) **wajib** mengikuti pola `@hono/zod-openapi` di atas:
+
 - Ganti `Hono()` biasa jadi `OpenAPIHono()` di tiap `*.routes.ts`
 - Definisikan tiap endpoint dengan `createRoute()`, isi `summary`,
   `tags`, dan schema request/response
@@ -527,6 +534,7 @@ benar-benar bicara ke PostgreSQL. Butuh **database test terpisah**
 (bukan database dev/production).
 
 Setup:
+
 - Docker Compose menyediakan PostgreSQL khusus test (port berbeda dari
   dev)
 - Migration dijalankan (`drizzle-kit migrate`) ke database test sebelum
@@ -824,12 +832,12 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173
 
 ### Strategi per Environment
 
-| Environment | Sumber env var | Catatan |
-|---|---|---|
-| Local dev | `.env` (git-ignored) | Copy dari `.env.example`, isi manual |
-| Test | `.env.test` (git-ignored) | `DATABASE_URL` mengarah ke DB test terpisah (Section 10) |
-| CI (GitHub Actions) | GitHub Secrets | Diset lewat Settings → Secrets, di-inject sebagai env di workflow |
-| Staging/Production | GitHub Environments + secrets provider hosting (Railway/Render/Fly.io vars, dst) | Terpisah per environment, akses dibatasi + butuh approval untuk deploy production (lihat Section 16) |
+| Environment         | Sumber env var                                                                   | Catatan                                                                                              |
+| ------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Local dev           | `.env` (git-ignored)                                                           | Copy dari`.env.example`, isi manual                                                                |
+| Test                | `.env.test` (git-ignored)                                                      | `DATABASE_URL` mengarah ke DB test terpisah (Section 10)                                           |
+| CI (GitHub Actions) | GitHub Secrets                                                                   | Diset lewat Settings → Secrets, di-inject sebagai env di workflow                                   |
+| Staging/Production  | GitHub Environments + secrets provider hosting (Railway/Render/Fly.io vars, dst) | Terpisah per environment, akses dibatasi + butuh approval untuk deploy production (lihat Section 16) |
 
 ### Aturan Wajib
 
@@ -855,6 +863,7 @@ mobile nanti) hanya perlu menangani satu pola parsing.
 ### Format Envelope Standar
 
 **Sukses (single resource):**
+
 ```json
 {
   "success": true,
@@ -862,21 +871,24 @@ mobile nanti) hanya perlu menangani satu pola parsing.
 }
 ```
 
-**Sukses (list, dengan pagination):**
+**Sukses (list, dengan pagination cursor — lihat subsection "Pagination" di bawah):**
+
 ```json
 {
   "success": true,
   "data": [ { "id": "01HXYZABCDEF1234567890", "lemma": "makatn" } ],
   "meta": {
-    "page": 1,
-    "per_page": 20,
-    "total_items": 154,
-    "total_pages": 8
+    "limit": 20,
+    "next_cursor": "01HXYZABCDEF1234567891",
+    "has_more": true
   }
 }
 ```
 
+`next_cursor: null` + `has_more: false` = halaman terakhir.
+
 **Gagal:**
+
 ```json
 {
   "success": false,
@@ -887,6 +899,7 @@ mobile nanti) hanya perlu menangani satu pola parsing.
 ```
 
 `details` diisi array kalau error validasi (banyak field sekaligus):
+
 ```json
 {
   "success": false,
@@ -898,6 +911,35 @@ mobile nanti) hanya perlu menangani satu pola parsing.
   ]
 }
 ```
+
+### Pagination — Cursor-Based (WAJIB untuk semua endpoint list)
+
+Semua endpoint yang mengembalikan list memakai **cursor-based
+pagination**, bukan offset — `LIMIT/OFFSET` dan `COUNT(*)` dilarang:
+
+- `OFFSET n` memindai dan membuang n baris — makin dalam halaman,
+  makin lambat (O(n) per halaman)
+- `COUNT(*)` untuk `total_items`/`total_pages` makin mahal seiring
+  tabel membesar — dan angkanya langsung basi begitu ada insert lain
+
+**Cursor = ULID `id` item terakhir halaman sebelumnya.** Ini nyaris
+gratis karena ULID lexicographically sortable by waktu (Section 19) —
+`ORDER BY id` = urut waktu pembuatan, dan `id` selalu ter-index (PK).
+
+Kontrak per endpoint list:
+
+| Aspek                           | Bentuk                                                                                                       |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Query                           | `?limit=20&cursor=<ULID opsional>` (halaman pertama tanpa cursor)                                          |
+| Urutan                          | `ORDER BY id DESC` (terbaru dulu) kecuali disebut lain                                                     |
+| Halaman berikutnya              | `WHERE id < cursor ORDER BY id DESC LIMIT limit + 1`                                                       |
+| `has_more`                    | hasil fetch`limit + 1` → lebih dari `limit` berarti `true`, item ke-n+1 dibuang                       |
+| `meta`                        | `{ "limit": 20, "next_cursor": "<ULID>\|null", "has_more": bool }` — TANPA `total_items`/`total_pages` |
+| Sort kolom lain (mis.`lemma`) | hanya boleh kalau cursor tetap unik & ter-index — paling aman tetap`id`                                   |
+
+Konsumen (web/admin) memakai pola *infinite scroll* / tombol
+"Muat lagi": render `data`, kalau `has_more` tampilkan tombol yang
+mengirim `cursor = next_cursor`.
 
 ### Hierarki Error di Domain/Application Layer
 
@@ -993,10 +1035,10 @@ Didaftarkan sekali di `main.ts` via `app.onError(errorHandler)` —
 
 Hono punya **dua jalur error yang berbeda** — keduanya wajib di-handle:
 
-| Jalur | Pemicu | Handler |
-|---|---|---|
-| `app.onError` | Error dilempar dari handler/use case | `errorHandler` (di atas) |
-| `app.notFound` | Request tidak cocok route manapun | wajib didaftarkan sendiri |
+| Jalur            | Pemicu                               | Handler                    |
+| ---------------- | ------------------------------------ | -------------------------- |
+| `app.onError`  | Error dilempar dari handler/use case | `errorHandler` (di atas) |
+| `app.notFound` | Request tidak cocok route manapun    | wajib didaftarkan sendiri  |
 
 Tanpa `app.notFound`, Hono membalas plain text `404 Not Found` —
 **melanggar prinsip envelope satu bentuk response**. Daftarkan sekali
@@ -1036,20 +1078,21 @@ Wajib dijaga sebagai dokumen hidup terpisah (`ERROR_CODES.md`), diupdate
 tiap kali ada `errorCode` baru ditambahkan — supaya konsumen API punya
 referensi lengkap tanpa harus baca kode:
 
-| error_code | HTTP Status | Contoh Kapan Muncul |
-|---|---|---|
-| `VALIDATION_ERROR` | 400 | Body request tidak lolos Zod schema |
-| `INVALID_CREDENTIALS` | 401 | Login gagal |
-| `UNAUTHORIZED` | 401 | Token tidak ada/invalid, atau refresh token tidak valid |
-| `TOKEN_EXPIRED` | 401 | Access token kadaluarsa |
-| `RESET_TOKEN_INVALID` | 401 | Token reset password tidak valid, kadaluarsa, atau sudah dipakai |
-| `FORBIDDEN` | 403 | Role tidak diizinkan akses endpoint |
-| `NOT_FOUND` | 404 | Route/endpoint tidak ditemukan (via `app.notFound`) |
-| `WORD_NOT_FOUND` | 404 | Kata tidak ditemukan by id |
-| `EMAIL_ALREADY_EXISTS` | 409 | Registrasi dengan email yang sudah dipakai |
-| `USERNAME_ALREADY_EXISTS` | 409 | Registrasi dengan username yang sudah dipakai |
-| `RATE_LIMITED` | 429 | Terlalu banyak percobaan (lihat tabel limit Section 15) |
-| `INTERNAL_ERROR` | 500 | Error tak terduga (bug, koneksi DB putus, dst) |
+| error_code                   | HTTP Status | Contoh Kapan Muncul                                                 |
+| ---------------------------- | ----------- | ------------------------------------------------------------------- |
+| `VALIDATION_ERROR`         | 400         | Body request tidak lolos Zod schema                                 |
+| `INVALID_CREDENTIALS`      | 401         | Login gagal                                                         |
+| `UNAUTHORIZED`             | 401         | Token tidak ada/invalid, atau refresh token tidak valid             |
+| `TOKEN_EXPIRED`            | 401         | Access token kadaluarsa                                             |
+| `RESET_TOKEN_INVALID`      | 401         | Token reset password tidak valid, kadaluarsa, atau sudah dipakai    |
+| `FORBIDDEN`                | 403         | Role tidak diizinkan akses endpoint                                 |
+| `NOT_FOUND`                | 404         | Route/endpoint tidak ditemukan (via`app.notFound`)                |
+| `WORD_NOT_FOUND`           | 404         | Kata tidak ditemukan by id                                          |
+| `EMAIL_ALREADY_EXISTS`     | 409         | Registrasi dengan email yang sudah dipakai                          |
+| `USERNAME_ALREADY_EXISTS`  | 409         | Registrasi dengan username yang sudah dipakai                       |
+| `RATE_LIMITED`             | 429         | Terlalu banyak percobaan (lihat tabel limit Section 15)             |
+| `INTERNAL_ERROR`           | 500         | Error tak terduga (bug, koneksi DB putus, dst)                      |
+| `IMAGE_UPLOAD_UNAVAILABLE` | 503         | Provider penyimpanan gambar belum dikonfigurasi (env`IMAGEKIT_*`) |
 
 ### Aturan Wajib
 
@@ -1112,12 +1155,12 @@ menyambungkan log aplikasi dengan jejak audit di database.
 
 ### Apa yang Di-log
 
-| Level | Kapan dipakai |
-|---|---|
-| `debug` | Detail teknis untuk development (query yang dijalankan, dst) — mati di production |
-| `info` | Request masuk/keluar (method, path, status, durasi), event bisnis penting (user register, kata dipublikasi) |
-| `warn` | Kondisi tak normal tapi tidak fatal (rate limit tercapai, percobaan login gagal) |
-| `error` | Exception tak tertangani, kegagalan koneksi eksternal (DB, SMTP) |
+| Level     | Kapan dipakai                                                                                               |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+| `debug` | Detail teknis untuk development (query yang dijalankan, dst) — mati di production                          |
+| `info`  | Request masuk/keluar (method, path, status, durasi), event bisnis penting (user register, kata dipublikasi) |
+| `warn`  | Kondisi tak normal tapi tidak fatal (rate limit tercapai, percobaan login gagal)                            |
+| `error` | Exception tak tertangani, kegagalan koneksi eksternal (DB, SMTP)                                            |
 
 ### Yang TIDAK BOLEH Di-log
 
@@ -1145,13 +1188,13 @@ palsu) dan brute force di endpoint sensitif.
 
 ### Strategi Bertingkat
 
-| Kategori endpoint | Contoh | Limit |
-|---|---|---|
-| Publik, baca saja | `GET /api/v1/words`, `GET /api/v1/words/:id` | 100 request/menit per IP |
-| Publik, tulis (belum login) | `POST /api/v1/auth/register` | 5 request/jam per IP |
-| Auth sensitif | `POST /api/v1/auth/login`, `POST /api/v1/auth/forgot-password` | 5 percobaan/15 menit per email+IP |
-| Sudah login, tulis data | `POST /api/v1/words` (submit kata) | 30 request/menit per user_id |
-| Admin | Endpoint role admin/editor | Longgar (500/menit) atau tidak dibatasi |
+| Kategori endpoint           | Contoh                                                             | Limit                                   |
+| --------------------------- | ------------------------------------------------------------------ | --------------------------------------- |
+| Publik, baca saja           | `GET /api/v1/words`, `GET /api/v1/words/:id`                   | 100 request/menit per IP                |
+| Publik, tulis (belum login) | `POST /api/v1/auth/register`                                     | 5 request/jam per IP                    |
+| Auth sensitif               | `POST /api/v1/auth/login`, `POST /api/v1/auth/forgot-password` | 5 percobaan/15 menit per email+IP       |
+| Sudah login, tulis data     | `POST /api/v1/words` (submit kata)                               | 30 request/menit per user_id            |
+| Admin                       | Endpoint role admin/editor                                         | Longgar (500/menit) atau tidak dibatasi |
 
 ### Implementasi
 
@@ -1207,6 +1250,10 @@ authRoutes.openapi(loginRoute, loginHandler);   // Section 9: bukan app.post
   dipasangi rate limit sejak dibuat, bukan ditambah belakangan setelah
   ada insiden
 - Response 429 **wajib** sertakan header `Retry-After`
+- Di belakang reverse proxy/load balancer, PASTIKAN `x-forwarded-for`
+  diteruskan (proxy_set_header / set_real_ip_from di nginx, dst) —
+  tanpa itu semua klien berbagi satu bucket rate limit (`unknown`)
+  dan kolektif saling mengunci
 - Limit untuk role admin/editor boleh lebih longgar, tapi tidak boleh
   benar-benar tanpa batas (jaga-jaga akun admin diretas)
 
@@ -1381,12 +1428,12 @@ untuk "sekadar coba cepat".
 
 ### Tier Environment
 
-| Environment | Tujuan | Siapa yang akses | Database |
-|---|---|---|---|
-| **Local (Development)** | Coding sehari-hari di komputer masing-masing developer | Developer individu | PostgreSQL lokal (Docker Compose) atau branch Neon pribadi |
-| **Development (opsional, shared)** | Integrasi awal antar developer sebelum masuk staging — bisa dilewati kalau tim masih kecil/solo | Semua developer, internal only | DB `dev`, boleh sering direset |
-| **Staging** | Simulasi production — tempat QA, demo ke stakeholder, test sebelum rilis | Tim internal + tester | DB `staging`, data mirip production (anonim/sample), **bukan** data asli user |
-| **Production** | Yang dipakai pengguna sungguhan | Publik | DB `production`, data asli — paling dilindungi |
+| Environment                              | Tujuan                                                                                           | Siapa yang akses               | Database                                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------ |
+| **Local (Development)**            | Coding sehari-hari di komputer masing-masing developer                                           | Developer individu             | PostgreSQL lokal (Docker Compose) atau branch Neon pribadi                           |
+| **Development (opsional, shared)** | Integrasi awal antar developer sebelum masuk staging — bisa dilewati kalau tim masih kecil/solo | Semua developer, internal only | DB`dev`, boleh sering direset                                                      |
+| **Staging**                        | Simulasi production — tempat QA, demo ke stakeholder, test sebelum rilis                        | Tim internal + tester          | DB`staging`, data mirip production (anonim/sample), **bukan** data asli user |
+| **Production**                     | Yang dipakai pengguna sungguhan                                                                  | Publik                         | DB`production`, data asli — paling dilindungi                                     |
 
 > Untuk skala tim saat ini (solo/kecil), **Development tier boleh
 > dilewati** — cukup Local → Staging → Production. Tambahkan tier
@@ -1414,17 +1461,17 @@ feature/xxx  ──PR──▶  develop (opsional)  ──PR──▶  staging  
 Ini poin yang paling sering terlewat — bukan cuma `DATABASE_URL` yang
 beda, tapi juga:
 
-| Config | Local | Staging | Production |
-|---|---|---|---|
-| `NODE_ENV` | `development` | `staging` | `production` |
-| Log level (Section 14) | `debug` | `info` | `info` |
-| Format log | Human-readable (`pino-pretty`) | JSON | JSON |
-| Rate limit (Section 15) | Longgar/dimatikan | Sama seperti production | Ketat sesuai tabel |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | `https://staging.kamus-sambas.app` | `https://kamus-sambas.app` |
-| Email (SMTP) | Mailtrap/Ethereal (sandbox, tidak kirim asli) | Mailtrap/sandbox provider | SMTP asli (mengirim ke user sungguhan) |
-| JWT key pair | Key dummy per developer | Key khusus staging | Key khusus production (paling dilindungi) |
-| Error detail di response | Boleh lebih verbose untuk debug | Sama seperti production | Pesan generik saja, detail cuma di log |
-| Swagger/Scalar docs (`/docs`) | Aktif | Aktif | Pertimbangkan lindungi dengan auth atau nonaktifkan publik |
+| Config                          | Local                                         | Staging                              | Production                                                 |
+| ------------------------------- | --------------------------------------------- | ------------------------------------ | ---------------------------------------------------------- |
+| `NODE_ENV`                    | `development`                               | `staging`                          | `production`                                             |
+| Log level (Section 14)          | `debug`                                     | `info`                             | `info`                                                   |
+| Format log                      | Human-readable (`pino-pretty`)              | JSON                                 | JSON                                                       |
+| Rate limit (Section 15)         | Longgar/dimatikan                             | Sama seperti production              | Ketat sesuai tabel                                         |
+| `CORS_ALLOWED_ORIGINS`        | `http://localhost:5173`                     | `https://staging.kamus-sambas.app` | `https://kamus-sambas.app`                               |
+| Email (SMTP)                    | Mailtrap/Ethereal (sandbox, tidak kirim asli) | Mailtrap/sandbox provider            | SMTP asli (mengirim ke user sungguhan)                     |
+| JWT key pair                    | Key dummy per developer                       | Key khusus staging                   | Key khusus production (paling dilindungi)                  |
+| Error detail di response        | Boleh lebih verbose untuk debug               | Sama seperti production              | Pesan generik saja, detail cuma di log                     |
+| Swagger/Scalar docs (`/docs`) | Aktif                                         | Aktif                                | Pertimbangkan lindungi dengan auth atau nonaktifkan publik |
 
 ### Database: Docker di Lokal, Neon di Staging/Production
 
@@ -1432,12 +1479,12 @@ Bisa, dan memang dirancang begitu (Section 8): **satu driver `pg`, satu
 `DATABASE_URL`** — antar environment hanya nilainya yang berubah, kode
 dan migration SQL-nya identik.
 
-| Environment | Database | Sumber connection string |
-|---|---|---|
-| Local dev | Docker Compose service `postgres` (port 5432) | `.env` |
-| Local test | Docker Compose service `postgres-test` (port 5433) | `.env.test` |
-| CI (test job) | Service container `postgres:16` di workflow | env di workflow (Section 16) |
-| Staging / Production | **Neon** (TCP standar via `pg`) | GitHub secrets → env deploy |
+| Environment          | Database                                            | Sumber connection string     |
+| -------------------- | --------------------------------------------------- | ---------------------------- |
+| Local dev            | Docker Compose service`postgres` (port 5432)      | `.env`                     |
+| Local test           | Docker Compose service`postgres-test` (port 5433) | `.env.test`                |
+| CI (test job)        | Service container`postgres:16` di workflow        | env di workflow (Section 16) |
+| Staging / Production | **Neon** (TCP standar via `pg`)             | GitHub secrets → env deploy |
 
 Aturan Neon (wajib dipatuhi semua prompt/deploy):
 
@@ -1491,10 +1538,11 @@ Aturan Neon (wajib dipatuhi semua prompt/deploy):
 
 ## 18. Referensi Prompt Terkait
 
-- `prompt-admin-tambah-kata.md` — UI admin (frontend)
-- `01-api-word.md` — akan disesuaikan pakai struktur di atas
-- `00-api-auth.md` — akan disesuaikan pakai pola `@hono/zod-openapi` di atas
-- `kamus_sambas.dbml` — skema database lengkap
+- `docs/admin/admin-tambah-kata.md` — UI admin (frontend)
+- `01-api-tambah-kata.md` — prompt modul word (sudah diselaraskan)
+- `00-api-auth.md` — prompt modul auth (sudah diimplementasikan)
+- `02-api-audit-logs.md` — prompt modul audit (auditor: admin & root)
+- `docs/dbdiagram.dbml` — skema database lengkap
 - `ERROR_CODES.md` — katalog error code (buat terpisah, lihat Section 13)
 - repo `http/` — koleksi Bruno untuk uji fungsional semua endpoint (Section 20)
 
@@ -1509,13 +1557,13 @@ tidak bergantung pada sequence database.
 
 ### Mengapa ULID, Bukan Auto-Increment
 
-| Aspek | Auto-Increment (`serial`/`bigint`) | ULID (`varchar(26)`) |
-|---|---|---|
-| Distribusi | Bergantung pada satu DB sequence — sulit shard/partisi | Generate di mana saja, tidak butuh sequence |
-| Sortability | Urut tapi tidak terkait waktu | Lexicographically sortable berdasarkan waktu (karena timestamp embedded) |
-| Keamanan | ID bisa di-detect (1, 2, 3...) — rawan enumeration | 26 char random — tidak bisa di-guess |
-| Portabilitas | Banyak DB punya sequence, tapi mekanisme beda-beda | Tipe data `varchar` — universal di semua DB |
-| Multi-client | Butuh locking/transaction untuk generate ID sebelum insert | Bisa di-generate sebelum insert, tanpa conflict |
+| Aspek        | Auto-Increment (`serial`/`bigint`)                     | ULID (`varchar(26)`)                                                   |
+| ------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Distribusi   | Bergantung pada satu DB sequence — sulit shard/partisi    | Generate di mana saja, tidak butuh sequence                              |
+| Sortability  | Urut tapi tidak terkait waktu                              | Lexicographically sortable berdasarkan waktu (karena timestamp embedded) |
+| Keamanan     | ID bisa di-detect (1, 2, 3...) — rawan enumeration        | 26 char random — tidak bisa di-guess                                    |
+| Portabilitas | Banyak DB punya sequence, tapi mekanisme beda-beda         | Tipe data`varchar` — universal di semua DB                            |
+| Multi-client | Butuh locking/transaction untuk generate ID sebelum insert | Bisa di-generate sebelum insert, tanpa conflict                          |
 
 ### Library: `ulid`
 
@@ -1604,6 +1652,7 @@ Table words {
 ```
 
 Aturan konversi DBML:
+
 - `id int [pk, increment]` → `id varchar(26) [pk]`
 - `id bigint [pk, increment]` → `id varchar(26) [pk]`
 - Semua `int [ref: > ...]` → `varchar(26) [ref: > ...]`
@@ -1721,12 +1770,12 @@ Modul baru (word, category, dst) membuat folder sendiri:
 
 ### Aturan Sinkronisasi (WAJIB, satu PR yang sama dengan perubahan API)
 
-| Perubahan di `api/` | Yang harus dilakukan di `http/` |
-| --- | --- |
-| Endpoint baru | File `.bru` baru di folder modul + `tests` |
-| Field request/response berubah | Update `body:json` + assertion `tests` |
-| Endpoint dihapus / path berubah | Hapus / rename file `.bru` |
-| Error code baru yang memengaruhi assertion | Update `tests` |
+| Perubahan di`api/`                       | Yang harus dilakukan di`http/`              |
+| ------------------------------------------ | --------------------------------------------- |
+| Endpoint baru                              | File`.bru` baru di folder modul + `tests` |
+| Field request/response berubah             | Update`body:json` + assertion `tests`     |
+| Endpoint dihapus / path berubah            | Hapus / rename file`.bru`                   |
+| Error code baru yang memengaruhi assertion | Update`tests`                               |
 
 Environment selain `local` TIDAK di-commit — staging/production
 dikelola lokal lewat fitur environment Bruno (kredensial sungguhan
@@ -1740,3 +1789,54 @@ tidak pernah masuk git, konsisten Section 12).
 # CLI (mis. smoke test setelah deploy):
 cd http && bruno run --env local auth/
 ```
+
+---
+
+## 21. Audit Trail — Setiap Mutasi Data Tercatat
+
+Prinsip: **setiap operasi yang mengubah data domain (create / update /
+delete) WAJIB menghasilkan satu baris `audit_logs`** — siapa melakukan,
+kapan, apa yang berubah, dari request mana. Auditor internal membacanya
+lewat modul audit yang hanya bisa diakses role **admin** dan **root**.
+
+### Tabel `audit_logs`
+
+| Kolom           | Isi                                                                                           |
+| --------------- | --------------------------------------------------------------------------------------------- |
+| `id`          | ULID (Section 19)                                                                             |
+| `user_id`     | ULID pelaku (FK users, nullable untuk aksi sistem)                                            |
+| `action`      | `'create'` \| `'update'` \| `'delete'` \| `'password_change'` \| `'publish'` \| dst |
+| `entity_type` | `'user'` \| `'word'` \| `'category'` \| dst                                             |
+| `entity_id`   | ULID entitas yang diubah                                                                      |
+| `old_data`    | snapshot sebelum perubahan (JSON,`null` untuk create)                                       |
+| `new_data`    | snapshot sesudah perubahan (JSON)                                                             |
+| `request_id`  | dari`requestIdMiddleware` (Section 14) — menyambung log aplikasi ↔ audit DB               |
+| `created_at`  | timestamp                                                                                     |
+
+### Konvensi Penulisan (WAJIB)
+
+- **Yang menulis: use case**, lewat `AuditLogRepository` — interface
+  diekspor `modules/audit/domain/repositories/audit-log.repository.ts`
+  dan di-inject ke use case modul lain (pola komunikasi antar modul
+  Section 4: lewat interface yang di-export, bukan import internal).
+- **`request_id` wajib diisi** — controller mengambilnya dari context
+  (`c.get('requestId')`) dan meneruskannya ke use case.
+- **`old_data`/`new_data` TIDAK BOLEH berisi**: password (plain/hash),
+  token, atau kredensial apa pun — cukup field aman (mis. reset password
+  → `new_data: { changed: true }`).
+- **`record()` bersifat best-effort**: implementasi tidak boleh
+  melempar error ke caller — kegagalan insert hanya di-log `error`
+  (request user tidak ikut gagal). *Upgrade path*: kalau compliance
+  mewajibkan atomic, pindahkan insert ke transaksi yang sama dengan
+  mutasi utamanya.
+- `created_by`/`updated_by` di tiap tabel (lihat dbdiagram) tetap
+  dipertahankan — itu jejak cepat per baris; `audit_logs` adalah jejak
+  lengkap peristiwa (termasuk `old_data`) + penyambung ke log aplikasi
+  via `request_id`.
+
+### Sisi Pembaca (Auditor)
+
+Endpoint `GET /api/v1/admin/audit-logs` (modul `audit`) — hanya role
+`admin` dan `root` (`authenticate` + `authorizeRole('admin','root')`),
+lengkap dengan filter + pagination. Detail kontraknya ada di
+`02-api-audit-logs.md`.

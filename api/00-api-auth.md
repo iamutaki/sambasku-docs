@@ -123,6 +123,9 @@ ENDPOINT (semua di bawah prefix /api/v1 — Section 11):
    - Hash password via PasswordHasherPort (implementasi argon2id)
    - Role default: 'contributor'
    - Simpan user via UserRepository
+   - Audit trail (Section 21): catat action 'create', entity_type 'user',
+     new_data { username, email, role } — TANPA password/hash,
+     request_id dari context
    - JANGAN pernah kembalikan password_hash di response
    
    Response sukses (201) — envelope standar Section 13, tanpa field custom
@@ -132,13 +135,15 @@ ENDPOINT (semua di bawah prefix /api/v1 — Section 11):
                "username": "...", "email": "..." } }
 
 2. POST /api/v1/auth/login
-   Body: { email, password }
-   
+   Body: { email, password, client_type? }
+   client_type: 'web' (default) | 'mobile' — pilih kanal refresh token:
+
    Use case: LoginUserUseCase
    - Cari user by email via UserRepository
    - Bandingkan password via PasswordHasherPort.compare()
-   - Pesan error generik "Email atau password salah" untuk kedua kasus 
-     (email tidak ada / password salah) — cegah user enumeration
+   - Pesan error generik "Email atau password salah" untuk SEMUA kasus
+     gagal (email tidak ada / password salah / user soft-deleted /
+     user dinonaktifkan is_active=false) — cegah user enumeration
    - Jika sukses:
      a. Generate access_token (TokenServicePort, TTL dari env 
         JWT_ACCESS_TOKEN_TTL — default 900 detik / 15 menit, 
@@ -146,10 +151,16 @@ ENDPOINT (semua di bawah prefix /api/v1 — Section 11):
      b. Generate refresh_token (random string), hash, simpan via 
         RefreshTokenRepository (TTL dari env JWT_REFRESH_TOKEN_TTL — 
         default 30 hari)
-     c. Refresh token dikirim sebagai httpOnly + secure + sameSite=strict 
-        cookie lewat Hono (c.header('Set-Cookie', ...) atau helper 
-        setCookie dari hono/cookie)
-     d. access_token dikembalikan di response body
+     c. WEB (default): refresh token dikirim sebagai httpOnly + secure +
+        sameSite=strict cookie lewat Hono (setCookie dari hono/cookie)
+     d. MOBILE (client_type='mobile'): refresh token dikirim di response
+        body (data.refresh_token), TANPA Set-Cookie — client menyimpannya
+        di secure storage perangkat (iOS Keychain / Android Keystore /
+        expo-secure-store / flutter_secure_storage). Alasan: HttpOnly dan
+        SameSite adalah mekanisme browser yang tidak berlaku di app
+        native; threat model mobile adalah pencurian perangkat (at-rest
+        encryption), bukan XSS
+     e. access_token dikembalikan di response body (kedua kanal)
    - Rate limiting (Section 15): 5 percobaan/15 menit per email+IP 
      (middleware terpisah, lihat bagian Middleware)
    
@@ -160,16 +171,20 @@ ENDPOINT (semua di bawah prefix /api/v1 — Section 11):
                          "username": "...", "role": "..." } } }
 
 3. POST /api/v1/auth/refresh
-   - Ambil refresh_token dari cookie (getCookie dari hono/cookie)
+   - Sumber token (dua kanal, dipilih otomatis): body 
+     { refresh_token: "..." } (mobile) ATAU cookie (web, default)
    - RefreshTokenUseCase: validasi hash cocok, belum expired, 
      is_revoked = false
    - Generate access_token baru
    - Rotate refresh_token: revoke yang lama, buat & simpan yang baru 
      (cegah replay attack)
+   - Token rotasi dikembalikan via kanal yang sama: cookie (web) atau
+     data.refresh_token di body (mobile)
 
 4. POST /api/v1/auth/logout
+   - Sumber token sama seperti refresh: body (mobile) atau cookie (web)
    - LogoutUserUseCase: revoke refresh_token yang sedang dipakai
-   - Clear cookie
+   - Clear cookie (no-op untuk mobile)
 
 5. POST /api/v1/auth/logout-all-devices
    - LogoutAllDevicesUseCase: revoke SEMUA refresh_token milik user 
@@ -192,6 +207,12 @@ ENDPOINT (semua di bawah prefix /api/v1 — Section 11):
      RESET_TOKEN_INVALID
    - Update password_hash user (setelah token terbakar — kalau gagal,
      user minta link baru, failure mode aman)
+   - Revoke SEMUA refresh token user — logout paksa semua perangkat
+     (reset password biasanya berarti akun tercompromi; session lama
+     milik pencuri tidak boleh selamat)
+   - Audit trail (Section 21): action 'password_change', entity_type
+     'user', new_data { changed: true } — hash password TIDAK PERNAH
+     masuk audit
 
 MIDDLEWARE (shared/middlewares/, dipakai lintas modul):
 
@@ -264,6 +285,8 @@ FORMAT RESPONSE — ENVELOPE STANDAR (Section 13 api-base-stack.md):
 ## Referensi Terkait
 
 - `api-base-stack.md` — definisi stack & struktur folder lengkap
+- `02-api-audit-logs.md` — sisi pembaca audit (auditor: admin & root);
+  modul auth menulis audit untuk register & reset password
 - repo `http/` — koleksi Bruno endpoint auth sudah tersedia
   (`http/auth/*.bru`, Section 20) — WAJIB di-update tiap kali endpoint
   auth berubah

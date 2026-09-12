@@ -101,6 +101,12 @@ Table words {
 
   notes text
 
+  // word | idiom | peribahasa | ungkapan — jenis entri (bukan topik/kategori)
+  word_type varchar(30) [not null, default: 'word']
+
+  // draft | pending_review | published (lihat docs/api/01-api-tambah-kata.md)
+  status varchar(30) [not null, default: 'draft']
+
   created_by varchar(26) [ref: > users.id]
   updated_by varchar(26) [ref: > users.id]
 
@@ -130,6 +136,10 @@ Table word_variants {
   form varchar(255) [not null]
 
   variant_type varchar(50) [not null, default: 'alternative']
+
+  // prefix | suffix | circumfix | reduplication (null = bentuk tanpa afiks)
+  affix_type varchar(30)
+  affix_value varchar(50)
 
   notes text
 
@@ -332,6 +342,36 @@ Table pronunciations {
   }
 }
 
+
+// ============================================================
+// WORD IMAGES — gambar contoh per kata
+// Referensi file di provider eksternal (ImageKit); provider-agnostic
+// ============================================================
+
+Table word_images {
+  id varchar(26) [pk]
+
+  word_id varchar(26) [not null, ref: > words.id]
+
+  // imagekit | provider lain via wrapper ImageStoragePort
+  provider varchar(50) [not null, default: 'imagekit']
+  provider_file_id varchar(255) [not null]
+  url varchar(1000) [not null]
+
+  alt_text varchar(500)
+  is_primary boolean [not null, default: false]
+
+  created_by varchar(26) [ref: > users.id]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+  deleted_at timestamp
+
+  Indexes {
+    (provider, provider_file_id) [unique]
+    (word_id)
+  }
+}
 
 // ============================================================
 // SOURCES
@@ -546,7 +586,7 @@ Table contribution_reviews {
 
   contribution_id varchar(26) [not null, ref: > contributions.id]
 
-  reviewer_id varchar(26) [not null, ref: > users.id]
+  reviewer_id varchar(26) [ref: > users.id]
 
   status varchar(30) [not null, default: 'pending']
 
