@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "data": {
+    "contribution_id": "01JDCONTRIB00000000000001",
+    "entity_type": "pronunciation",
+    "entity_id": "01JDPRONMEDIA0000000000001",
+    "status": "rejected"
+  }
+}

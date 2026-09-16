@@ -1,0 +1,19 @@
+{
+  "success": false,
+  "error_code": "VALIDATION_ERROR",
+  "message": "Data yang dikirim tidak valid",
+  "details": [
+    {
+      "field": "email",
+      "message": "Format email tidak valid"
+    },
+    {
+      "field": "password",
+      "message": "harus mengandung angka"
+    },
+    {
+      "field": "confirm_password",
+      "message": "confirm_password harus sama dengan password"
+    }
+  ]
+}

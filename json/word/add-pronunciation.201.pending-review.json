@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "data": {
+    "id": "01JDPRONMEDIA0000000000001",
+    "word_id": "01JDWORDMAKATN000000000000",
+    "dialect_id": null,
+    "notation": "ipa",
+    "value": "/makatn dai/",
+    "audio_url": null,
+    "speaker_name": "Pak Daud",
+    "notes": null,
+    "status": "pending_review",
+    "is_verified": false,
+    "is_corrected": false
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "SEARCH_MISS_NOT_FOUND",
+  "message": "Pencarian kosong dengan id tersebut tidak ditemukan",
+  "details": null
+}

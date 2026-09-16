@@ -1,0 +1,15 @@
+{
+  "success": false,
+  "error_code": "VALIDATION_ERROR",
+  "message": "Data yang dikirim tidak valid",
+  "details": [
+    {
+      "field": "lemma",
+      "message": "Kata tidak boleh kosong"
+    },
+    {
+      "field": "meanings",
+      "message": "Minimal harus ada 1 makna"
+    }
+  ]
+}

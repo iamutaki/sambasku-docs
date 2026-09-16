@@ -4,6 +4,9 @@ Form admin untuk fitur "Tambah Kata" — mengonsumsi API yang dispesifikasikan
 di `docs/api/01-api-tambah-kata.md`, dengan konvensi backend di
 `docs/api/api-base-stack.md` (envelope response, error code, auth).
 Koleksi uji fungsional endpoint-nya ada di repo `http/`.
+Alur verifikasi kontribusi (antrean review approve/reject/correct)
+didefinisikan di `docs/api/03-api-kontribusi-verifikasi.md` — halaman
+UI antreannya menyusul di prompt admin terpisah.
 
 ---
 
@@ -103,7 +106,7 @@ GAYA VISUAL:
 INTEGRASI BACKEND (WAJIB — kontrak di 01-api-tambah-kata.md):
 
 1. AUTENTIKASI (00-api-auth.md)
-   - Halaman hanya untuk role: admin, editor, contributor
+   - Halaman untuk role: admin, editor, contributor, root, reviewer
    - access_token disimpan di memory (BUKAN localStorage), dikirim sebagai
      header Authorization: Bearer <token>
    - refresh_token otomatis lewat httpOnly cookie — 401 TOKEN_EXPIRED →
@@ -117,17 +120,21 @@ INTEGRASI BACKEND (WAJIB — kontrak di 01-api-tambah-kata.md):
    synonym_word_ids[], pronunciation?, status
    — semua *_id adalah ULID string pilihan dari dropdown, BUKAN input bebas
 
-3. ALUR STATUS (words.status)
-   - 'draft' → tombol Simpan Draft
-   - 'published' + role admin/editor → langsung tayang
+3. ALUR STATUS (words.status — Section 22 approval gate)
+   - 'draft' → tombol Simpan Draft (tidak tayang, tidak masuk antrean)
+   - 'published' + role admin/editor/root/reviewer → langsung tayang,
+     is_verified true (self-verified)
    - 'published' + role contributor → backend simpan 'pending_review'
-     (masuk antrian review) — toast harus jujur menyebut status akhir
-     dari response (bukan asumsi), karena data.status adalah sumber
-     kebenaran
+     (masuk antrean review — TIDAK tayang sampai disetujui verifikator)
+     — toast harus jujur menyebut status akhir dari response (bukan
+     asumsi), karena data.status adalah sumber kebenaran
+   - Keputusan antrean (approve/reject dengan alasan/correct dengan
+     koreksi verifikator) dikonsumsi halaman antrean review terpisah —
+     kontrak API-nya di 03-api-kontribusi-verifikasi.md
 
 4. HANDLE RESPONSE (envelope standar Section 13)
-   - Sukses: { success: true, data: { word_id, lemma, status, created_at,
-     warnings? } } → toast + redirect
+   - Sukses: { success: true, data: { word_id, lemma, word_type, status,
+     is_verified, created_at, warnings? } } → toast + redirect
    - data.warnings (duplikat lemma serupa) → tampilkan sebagai warning
      banner/toast kuning SETELAH sukses — bukan blokir
    - 400 VALIDATION_ERROR: details[] = [{ field, message }] → PETAKAN

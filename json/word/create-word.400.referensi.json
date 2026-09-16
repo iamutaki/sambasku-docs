@@ -1,0 +1,15 @@
+{
+  "success": false,
+  "error_code": "VALIDATION_ERROR",
+  "message": "Data yang dikirim tidak valid",
+  "details": [
+    {
+      "field": "language_id",
+      "message": "Bahasa tidak ditemukan"
+    },
+    {
+      "field": "meanings.0.word_class_id",
+      "message": "Kelas kata tidak ditemukan (01JD...)"
+    }
+  ]
+}

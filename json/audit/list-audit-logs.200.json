@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "01JDAUDITLOG10000000000000",
+      "user_id": "01JDUSERADMIN0000000000000",
+      "action": "create",
+      "entity_type": "word",
+      "entity_id": "01JDWORDMAKATN000000000000",
+      "old_data": null,
+      "new_data": {
+        "lemma": "makatn",
+        "word_type": "word",
+        "language_id": "01JDSBSLANG000000000000000",
+        "status": "published",
+        "meanings_count": 1
+      },
+      "request_id": "f3a1b2c4-d5e6-7890-abcd-ef1234567890",
+      "created_at": "2026-09-12T02:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "limit": 10,
+    "next_cursor": null,
+    "has_more": false
+  }
+}

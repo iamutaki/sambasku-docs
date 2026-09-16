@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "01JDSBSLANG000000000000000",
+      "code": "SBS",
+      "name": "Sambas",
+      "native_name": "Sambas",
+      "is_active": true
+    },
+    {
+      "id": "01JDIDNLANG000000000000000",
+      "code": "IDN",
+      "name": "Indonesia",
+      "native_name": "Bahasa Indonesia",
+      "is_active": true
+    }
+  ]
+}

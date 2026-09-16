@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "data": {
+    "contribution": {
+      "id": "01JDCONTRIB00000000000000",
+      "user_id": "01JDCONTRIBUTOR000000000",
+      "contributor_username": "kontributor",
+      "entity_type": "word",
+      "entity_id": "01JDWORDKALINTIAK000000000",
+      "action": "create",
+      "status": "pending",
+      "created_at": "2026-09-16T10:00:00.000Z"
+    },
+    "review": null,
+    "entity": {
+      "id": "01JDWORDKALINTIAK000000000",
+      "lemma": "kalintiak",
+      "word_type": "word",
+      "status": "pending_review",
+      "is_verified": false,
+      "is_corrected": false,
+      "meanings": [
+        {
+          "id": "01JDMEANING00000000000001",
+          "definition": "Ikan sungai kecil",
+          "order_index": 1,
+          "translations": [
+            {
+              "language_id": "01JDIDNLANG000000000000000",
+              "translation_text": "ikan kecil",
+              "translation_type": "direct"
+            }
+          ],
+          "examples": []
+        }
+      ],
+      "pronunciations": [],
+      "images": []
+    }
+  }
+}

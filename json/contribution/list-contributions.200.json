@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "01JDCONTRIB00000000000000",
+      "user_id": "01JDCONTRIBUTOR000000000",
+      "contributor_username": "kontributor",
+      "entity_type": "word",
+      "entity_id": "01JDWORDKALINTIAK000000000",
+      "action": "create",
+      "status": "pending",
+      "created_at": "2026-09-16T10:00:00.000Z"
+    },
+    {
+      "id": "01JDCONTRIB00000000000001",
+      "user_id": "01JDCONTRIBUTOR000000000",
+      "contributor_username": "kontributor",
+      "entity_type": "pronunciation",
+      "entity_id": "01JDPRONMEDIA0000000000001",
+      "action": "create",
+      "status": "pending",
+      "created_at": "2026-09-16T10:05:00.000Z"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "next_cursor": null,
+    "has_more": false
+  }
+}

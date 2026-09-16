@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "01JDDIALEKUMUM000000000000",
+      "language_id": "01JDSBSLANG000000000000000",
+      "code": "umum",
+      "name": "Umum",
+      "is_active": true
+    },
+    {
+      "id": "01JDDIALEKKOTA000000000000",
+      "language_id": "01JDSBSLANG000000000000000",
+      "code": "kota",
+      "name": "Sambas Kota",
+      "is_active": true
+    }
+  ]
+}

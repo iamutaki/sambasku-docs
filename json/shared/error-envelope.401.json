@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "UNAUTHORIZED",
+  "message": "Token tidak disertakan atau tidak valid",
+  "details": null
+}

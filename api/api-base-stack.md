@@ -264,11 +264,30 @@ sama seperti perubahan kode aplikasi biasa.
 
 ### Aturan Wajib
 
-- **Jangan edit migration file yang sudah pernah dijalankan** di
-  environment manapun (termasuk local dev milik kontributor lain). Kalau
-  ada kesalahan, buat migration baru untuk memperbaikinya — jangan ubah
-  yang lama. Ini menjaga riwayat migrasi tetap konsisten di semua
+- **Semua tabel WAJIB implementasi soft delete** (`deleted_at` timestamp +
+  `deleted_by` varchar FK users) — TIDAK ADA hard delete di level aplikasi.
+  Pengecualian HANYA untuk:
+  - `audit_logs` — jejak audit bersifat immutable (menghapusnya mengalahkan tujuannya)
+  - `refresh_tokens` / `password_reset_tokens` — ephemeral, lifecycle via
+    `is_revoked`/`is_used`/`expires_at` + cleanup berkala
+  - `word_categories` (junction) — hanya `deleted_at` tanpa `deleted_by`
+    (link bukan entri; visibility mengikuti parent word yang di-soft-delete)
+
+  Query baca WAJIB filter `WHERE deleted_at IS NULL` untuk mengecualikan
+  baris yang sudah di-soft-delete.
+
+- **TIDAK BOLEH mengubah nama ATAU isi migration yang sudah pernah
+  dijalankan** di environment manapun (termasuk local dev milik
+  kontributor lain) — KECUALI mendapat persetujuan eksplisit seluruh tim.
+  Kalau ada kesalahan, buat migration baru untuk memperbaikinya — jangan
+  ubah yang lama. Ini menjaga riwayat migrasi tetap konsisten di semua
   environment.
+- **Nama migration WAJIB deskriptif sesuai isinya** — gunakan flag
+  `--name` saat generate. DILARANG menyimpan migration dengan nama
+  random yang dihasilkan drizzle-kit tanpa `--name`.
+  Format: `<nomor>_<kebab-case-deskriptif>.sql`
+  Contoh benar: `0007_add_soft_delete.sql`, `0008_create_audit_logs.sql`
+  Contoh salah: `0007_mature_captain_universe.sql` (random, tak bermakna)
 - **Migration dijalankan otomatis saat deploy** (bagian dari CI/CD atau
   startup script), bukan manual oleh developer di server production.
 - **Kontributor baru** cukup jalankan `pnpm drizzle-kit migrate` setelah
@@ -282,10 +301,17 @@ sama seperti perubahan kode aplikasi biasa.
 
 | Command                       | Fungsi                                                                     |
 | ----------------------------- | -------------------------------------------------------------------------- |
-| `pnpm drizzle-kit generate` | Generate file migrasi SQL dari perubahan schema                            |
+| `pnpm drizzle-kit generate --name=<deskriptif>` | Generate file migrasi SQL — **WAJIB pakai `--name`** (tanpa itu hasilnya nama random tak deskriptif) |
 | `pnpm drizzle-kit migrate`  | Jalankan migrasi yang belum diterapkan ke database                         |
 | `pnpm drizzle-kit studio`   | Buka GUI ringan untuk lihat isi database (dev only)                        |
-| `pnpm drizzle-kit drop`     | Hapus migration file terakhir yang belum dijalankan (kalau salah generate) |
+| `pnpm drizzle-kit drop`     |
+
+Contoh penamaan yang benar:
+
+    pnpm drizzle-kit generate --name=add-soft-delete
+    pnpm drizzle-kit generate --name=create-audit-logs
+
+Hasil: 0007_add_soft_delete.sql — terbaca jelas di diff/PR apa isinya. Hapus migration file terakhir yang belum dijalankan (kalau salah generate) |
 
 ---
 
@@ -1088,7 +1114,11 @@ referensi lengkap tanpa harus baca kode:
 | `FORBIDDEN`                | 403         | Role tidak diizinkan akses endpoint                                 |
 | `NOT_FOUND`                | 404         | Route/endpoint tidak ditemukan (via`app.notFound`)                |
 | `WORD_NOT_FOUND`           | 404         | Kata tidak ditemukan by id                                          |
+| `MEANING_NOT_FOUND`        | 404         | Makna tidak ditemukan by id (kontribusi contoh kalimat)             |
+| `CONTRIBUTION_NOT_FOUND`   | 404         | Kontribusi tidak ditemukan by id (antrean review)                   |
+| `SEARCH_MISS_NOT_FOUND`    | 404         | Pencarian kosong tidak ditemukan by id (dismiss panel admin)        |
 | `EMAIL_ALREADY_EXISTS`     | 409         | Registrasi dengan email yang sudah dipakai                          |
+| `CONTRIBUTION_ALREADY_REVIEWED` | 409    | Kontribusi sudah punya keputusan (approve/reject/correct)           |
 | `USERNAME_ALREADY_EXISTS`  | 409         | Registrasi dengan username yang sudah dipakai                       |
 | `RATE_LIMITED`             | 429         | Terlalu banyak percobaan (lihat tabel limit Section 15)             |
 | `INTERNAL_ERROR`           | 500         | Error tak terduga (bug, koneksi DB putus, dst)                      |
@@ -1193,8 +1223,8 @@ palsu) dan brute force di endpoint sensitif.
 | Publik, baca saja           | `GET /api/v1/words`, `GET /api/v1/words/:id`                   | 100 request/menit per IP                |
 | Publik, tulis (belum login) | `POST /api/v1/auth/register`                                     | 5 request/jam per IP                    |
 | Auth sensitif               | `POST /api/v1/auth/login`, `POST /api/v1/auth/forgot-password` | 5 percobaan/15 menit per email+IP       |
-| Sudah login, tulis data     | `POST /api/v1/words` (submit kata)                               | 30 request/menit per user_id            |
-| Admin                       | Endpoint role admin/editor                                         | Longgar (500/menit) atau tidak dibatasi |
+| Sudah login, tulis data     | `POST /api/v1/words` (submit kata), `POST /api/v1/words/:id/pronunciations` / `/:id/images`, `POST /api/v1/meanings/:id/examples` (kontribusi media) | 30 request/menit per user_id            |
+| Admin                       | Endpoint role admin/editor (termasuk antrean review `GET/POST /api/v1/admin/contributions/...`) | Longgar (500/menit) atau tidak dibatasi |
 
 ### Implementasi
 
@@ -1542,6 +1572,9 @@ Aturan Neon (wajib dipatuhi semua prompt/deploy):
 - `01-api-tambah-kata.md` — prompt modul word (sudah diselaraskan)
 - `00-api-auth.md` — prompt modul auth (sudah diimplementasikan)
 - `02-api-audit-logs.md` — prompt modul audit (auditor: admin & root)
+- `03-api-kontribusi-verifikasi.md` — prompt modul contribution (antrean
+  review approve/reject/correct + kontribusi media: gambar, pronounce,
+  contoh kalimat)
 - `docs/dbdiagram.dbml` — skema database lengkap
 - `ERROR_CODES.md` — katalog error code (buat terpisah, lihat Section 13)
 - repo `http/` — koleksi Bruno untuk uji fungsional semua endpoint (Section 20)
@@ -1805,7 +1838,7 @@ lewat modul audit yang hanya bisa diakses role **admin** dan **root**.
 | --------------- | --------------------------------------------------------------------------------------------- |
 | `id`          | ULID (Section 19)                                                                             |
 | `user_id`     | ULID pelaku (FK users, nullable untuk aksi sistem)                                            |
-| `action`      | `'create'` \| `'update'` \| `'delete'` \| `'password_change'` \| `'publish'` \| dst |
+| `action`      | `'create'` \| `'update'` \| `'delete'` \| `'password_change'` \| `'publish'` \| `'verify'`/`'unverify'` \| `'approve'` \| `'reject'` \| `'correct'` \| dst |
 | `entity_type` | `'user'` \| `'word'` \| `'category'` \| dst                                             |
 | `entity_id`   | ULID entitas yang diubah                                                                      |
 | `old_data`    | snapshot sebelum perubahan (JSON,`null` untuk create)                                       |
@@ -1840,3 +1873,74 @@ Endpoint `GET /api/v1/admin/audit-logs` (modul `audit`) — hanya role
 `admin` dan `root` (`authenticate` + `authorizeRole('admin','root')`),
 lengkap dengan filter + pagination. Detail kontraknya ada di
 `02-api-audit-logs.md`.
+
+---
+
+## 22. Model Publikasi & Verifikasi Konten (Approval Gate)
+
+Prinsip: **setiap kontribusi WAJIB melewati verifikasi admin sebelum
+tayang**. Publikasi adalah gerbang (`status`), kepercayaan adalah jejak
+(`is_verified` / `is_corrected`) — verifikator bisa menyetujui, menolak
+dengan alasan, atau **mengoreksi langsung** isi kontribusi saat review.
+
+> Model ini **menggantikan** keputusan awal "publish by default" (kontribusi
+> langsung tayang). Pembalikan ini sadar dan disengaja: UI admin sejak awal
+> memang mengharapkan antrean review, dan kualitas isi kamus diutamakan
+> daripada kecepatan tayang. Berlaku untuk SEMUA konten yang bisa
+> dikontribusikan user — kata, gambar, pronounce, contoh kalimat (sample),
+> dan jenis konten lain yang menyusul.
+
+### Kontrak
+
+| Kolom (tabel konten: `words`, `pronunciations`, `word_images`, `examples`) | Makna |
+| --- | --- |
+| `status` | `'draft' \| 'pending_review' \| 'published' \| 'rejected'` — draft = masih dikerjakan penulis; **pending_review = menunggu keputusan verifikator, TIDAK tayang**; published = tayang publik; rejected = ditolak (terminal — kirim ulang sebagai kontribusi baru). `pending_review`/`rejected` hanya di-set sistem; request user tetap `draft` \| `published` |
+| `is_verified` | `false` = belum diverifikasi; `true` = sudah diverifikasi tim verifikator |
+| `verified_by` / `verified_at` | siapa & kapan verifikasi dilakukan (hanya di `words`; identitas reviewer konten anak ada di `contribution_reviews`) |
+| `is_corrected` | `true` = isi konten pernah **dikoreksi verifikator** saat review; snapshot sebelum koreksi tersimpan di audit `old_data` (action `correct`) |
+
+### Role Matrix
+
+| Role | Submit (kata & media) | Review antrean (approve/reject/correct) | verify/unverify pasca-publikasi |
+| --- | --- | --- | --- |
+| root / admin / reviewer | langsung `published` + `is_verified: true` (self-verified) | ✅ | ✅ |
+| editor | langsung `published` + `is_verified: true` (self-verified) | ❌ | ❌ |
+| contributor | **`pending_review` → masuk antrean** (tidak tayang) | ❌ | ❌ |
+
+Hanya role `contributor` yang masuk antrean — reviewer sudah berwenang
+menyetujui kontribusi siapa pun, mengantrekan karyanya sendiri tidak
+menambah integritas.
+
+### Alur Wajib
+
+- Contributor submit non-draft → entity `pending_review` + baris
+  `contributions` dengan `status: 'pending'` → muncul di antrean review.
+  Endpoint publik **tidak menampilkannya** (list/search kata filter
+  `status = 'published'`; anak kata — pronounce/gambar/contoh — juga
+  hanya tampil bila `status = 'published'`)
+- Submit oleh admin/editor/root/reviewer → langsung `published` +
+  `is_verified: true` (mereka bagian dari tim verifikator — self-verified)
+- `draft` tetap draft untuk semua role (tidak tayang, tidak masuk antrean)
+- Keputusan verifikator (role **admin, root, reviewer**) lewat antrean
+  `GET /api/v1/admin/contributions`:
+  - **approve** → entity `published` + `is_verified: true`
+  - **reject** → entity `rejected` — `comment` (alasan) WAJIB
+  - **correct** → verifikator mengirim isi yang sudah dikoreksi →
+    entity diperbarui, `is_corrected: true`, lalu published + verified
+  - Setiap keputusan menulis baris `contribution_reviews`
+    (`reviewer_id`, `status approved/rejected/corrected`, `comment`) dan
+    memindahkan `contributions.status`
+- `POST /api/v1/admin/words/:id/verify` dan `/unverify` **tetap
+  tersedia** untuk memberi/mencabut kepercayaan PASCA-publikasi
+  (kontrak di `01-api-tambah-kata.md`)
+- Kontribusi konten anak pada kata yang sudah tayang (gambar, pronounce,
+  contoh kalimat) punya endpoint sendiri dan mengikuti alur yang sama —
+  kontrak lengkap di `03-api-kontribusi-verifikasi.md`
+- Audit trail (Section 21) mencatat aksi `approve`/`reject`/`correct`
+  (correct membawa `old_data` snapshot pra-koreksi) dan `is_verified` /
+  `is_corrected` di `new_data`
+
+*Rationale: dua dimensi tetap terpisah — `status` menjawab "boleh tayang?",
+`is_verified` menjawab "dipercaya?", `is_corrected` menjawab "pernah diubah
+verifikator?". Gerbang publikasi di tangan verifikator; penolakan selalu
+bersalah; koreksi tidak menghapus jejak.*

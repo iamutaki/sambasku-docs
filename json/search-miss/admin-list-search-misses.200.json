@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "01JDSEARCHMISS0000000000002",
+      "term": "miyang rabong",
+      "direction": "lemma",
+      "hit_count": 3,
+      "last_searched_at": "2026-09-16T11:00:00.000Z",
+      "is_fulfilled": true,
+      "created_at": "2026-09-15T08:00:00.000Z"
+    },
+    {
+      "id": "01JDSEARCHMISS0000000000000",
+      "term": "kalintiak dua",
+      "direction": "lemma",
+      "hit_count": 2,
+      "last_searched_at": "2026-09-16T10:05:00.000Z",
+      "is_fulfilled": false,
+      "created_at": "2026-09-16T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "next_cursor": null,
+    "has_more": false
+  }
+}

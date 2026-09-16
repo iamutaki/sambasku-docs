@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "01JDWCNOMINA00000000000000",
+      "code": "n",
+      "name": "Nomina",
+      "parent_id": null
+    },
+    {
+      "id": "01JDWCADV00000000000000000",
+      "code": "adv",
+      "name": "Adverbia",
+      "parent_id": null
+    }
+  ]
+}

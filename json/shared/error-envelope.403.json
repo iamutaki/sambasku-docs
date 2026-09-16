@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "FORBIDDEN",
+  "message": "Role tidak diizinkan mengakses endpoint ini",
+  "details": null
+}

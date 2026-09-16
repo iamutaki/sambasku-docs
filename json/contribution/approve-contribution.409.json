@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "CONTRIBUTION_ALREADY_REVIEWED",
+  "message": "Kontribusi ini sudah diproses — sudah ada keputusan review",
+  "details": null
+}

@@ -15,6 +15,8 @@ Table languages {
 
   created_at timestamp [not null]
   updated_at timestamp
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
 }
 
 
@@ -36,6 +38,9 @@ Table dialects {
 
   created_at timestamp [not null]
   updated_at timestamp
+
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
 
   Indexes {
     (language_id, code) [unique]
@@ -85,6 +90,8 @@ Table word_classes {
 
   created_at timestamp [not null]
   updated_at timestamp
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
 }
 
 
@@ -104,8 +111,21 @@ Table words {
   // word | idiom | peribahasa | ungkapan — jenis entri (bukan topik/kategori)
   word_type varchar(30) [not null, default: 'word']
 
-  // draft | pending_review | published (lihat docs/api/01-api-tambah-kata.md)
+  // Model publikasi (base-stack.md Section 22 — approval gate):
+  // draft | pending_review | published | rejected — kontribusi contributor
+  // masuk antrean review (pending_review, TIDAK tayang); pending_review dan
+  // rejected hanya di-set sistem, request user tetap draft | published
   status varchar(30) [not null, default: 'draft']
+
+  // Dimensi verifikasi terpisah dari publikasi:
+  // false = belum diverifikasi, true = diverifikasi verifikator
+  is_verified boolean [not null, default: false]
+  verified_by varchar(26) [ref: > users.id]
+  verified_at timestamp
+
+  // true = isi pernah dikoreksi verifikator saat review (jejak snapshot
+  // pra-koreksi ada di audit_logs.old_data, action 'correct')
+  is_corrected boolean [not null, default: false]
 
   created_by varchar(26) [ref: > users.id]
   updated_by varchar(26) [ref: > users.id]
@@ -242,6 +262,12 @@ Table examples {
 
   notes text
 
+  // Approval gate (Section 22) — kontribusi mandiri contributor masuk
+  // antrean; identitas reviewer tercatat di contribution_reviews
+  status varchar(30) [not null, default: 'published']
+  is_verified boolean [not null, default: false]
+  is_corrected boolean [not null, default: false]
+
   created_by varchar(26) [ref: > users.id]
   updated_by varchar(26) [ref: > users.id]
 
@@ -267,6 +293,8 @@ Table categories {
 
   created_at timestamp [not null]
   updated_at timestamp
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
 }
 
 
@@ -277,6 +305,9 @@ Table categories {
 Table word_categories {
   word_id varchar(26) [not null, ref: > words.id]
   category_id varchar(26) [not null, ref: > categories.id]
+
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
 
   Indexes {
     (word_id, category_id) [pk]
@@ -301,6 +332,9 @@ Table lexical_relations {
   created_by varchar(26) [ref: > users.id]
 
   created_at timestamp [not null]
+
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
 
   Indexes {
     (source_word_id, target_word_id, relation_type) [unique]
@@ -327,6 +361,12 @@ Table pronunciations {
   speaker_name varchar(255)
 
   notes text
+
+  // Approval gate (Section 22) — kontribusi mandiri contributor masuk
+  // antrean; identitas reviewer tercatat di contribution_reviews
+  status varchar(30) [not null, default: 'published']
+  is_verified boolean [not null, default: false]
+  is_corrected boolean [not null, default: false]
 
   created_by varchar(26) [ref: > users.id]
   updated_by varchar(26) [ref: > users.id]
@@ -360,6 +400,12 @@ Table word_images {
 
   alt_text varchar(500)
   is_primary boolean [not null, default: false]
+
+  // Approval gate (Section 22) — kontribusi mandiri contributor masuk
+  // antrean; identitas reviewer tercatat di contribution_reviews
+  status varchar(30) [not null, default: 'published']
+  is_verified boolean [not null, default: false]
+  is_corrected boolean [not null, default: false]
 
   created_by varchar(26) [ref: > users.id]
 
@@ -396,6 +442,8 @@ Table sources {
 
   created_at timestamp [not null]
   updated_at timestamp
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
 }
 
 
@@ -409,6 +457,9 @@ Table word_sources {
 
   notes text
 
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
   Indexes {
     (word_id, source_id) [pk]
   }
@@ -420,6 +471,9 @@ Table meaning_sources {
 
   notes text
 
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
   Indexes {
     (meaning_id, source_id) [pk]
   }
@@ -430,6 +484,9 @@ Table example_sources {
   source_id varchar(26) [not null, ref: > sources.id]
 
   notes text
+
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
 
   Indexes {
     (example_id, source_id) [pk]
@@ -503,6 +560,9 @@ Table translation_tokens {
 
   created_at timestamp [not null]
 
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
   Indexes {
     (translation_id, position)
   }
@@ -545,6 +605,9 @@ Table translation_requests {
 
   created_at timestamp [not null]
 
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
   Indexes {
     (user_id, created_at)
     (source_language_id, target_language_id)
@@ -566,13 +629,23 @@ Table contributions {
 
   action varchar(50) [not null]
 
+  // Status antrean review (Section 22 — approval gate):
+  // pending | approved | rejected | corrected — turunan dari status entity
+  // saat insert ('pending_review' → 'pending', selain itu 'approved');
+  // baris lama di-backfill 'approved' lewat migration
+  status varchar(30) [not null, default: 'pending']
+
   description text
 
   created_at timestamp [not null]
 
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
   Indexes {
     (user_id, created_at)
     (entity_type, entity_id)
+    (status)
   }
 }
 
@@ -588,14 +661,48 @@ Table contribution_reviews {
 
   reviewer_id varchar(26) [ref: > users.id]
 
+  // Ditulis saat verifikator mengambil keputusan (bukan saat submit):
+  // approved | rejected | corrected — comment WAJIB untuk rejected
   status varchar(30) [not null, default: 'pending']
 
   comment text
 
   created_at timestamp [not null]
 
+    deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
   Indexes {
     (contribution_id, reviewer_id)
+  }
+}
+
+
+// ============================================================
+// SEARCH MISSES — pencarian kosong jadi peluang kontribusi
+// (03-api-kontribusi-verifikasi.md). Fulfilment TIDAK disimpan kolom:
+// derived saat dibaca (JOIN words published, lemma = term)
+// ============================================================
+
+Table search_misses {
+  id varchar(26) [pk]
+
+  // kata yang dicari — normalized lower(trim), jadi unik per istilah
+  term varchar(255) [not null]
+
+  // lemma = Sambas→Indonesia (kata tidak ada); translation = Indonesia→Sambas
+  direction varchar(20) [not null, default: 'lemma']
+
+  hit_count int [not null, default: 1]
+  last_searched_at timestamp [not null]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
+  Indexes {
+    (term, direction) [unique]
   }
 }
 

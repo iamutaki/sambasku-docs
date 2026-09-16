@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "NOT_FOUND",
+  "message": "Route tidak ditemukan",
+  "details": null
+}

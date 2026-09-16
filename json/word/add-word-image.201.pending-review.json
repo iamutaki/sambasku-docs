@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "data": {
+    "id": "01JDIMAGEMEDIA000000000001",
+    "word_id": "01JDWORDMAKATN000000000000",
+    "url": "https://ik.imagekit.io/sambasku/words/makatn-2.jpg",
+    "provider_file_id": "file_media_abc124",
+    "alt_text": "Makan pakai tangan",
+    "is_primary": false,
+    "status": "pending_review",
+    "is_verified": false,
+    "is_corrected": false
+  }
+}

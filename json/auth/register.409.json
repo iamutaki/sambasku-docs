@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "EMAIL_ALREADY_EXISTS",
+  "message": "Email sudah terdaftar",
+  "details": null
+}

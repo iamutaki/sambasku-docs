@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "01JDCATALAM000000000000000",
+      "parent_id": null,
+      "name": "Alam",
+      "description": null
+    },
+    {
+      "id": "01JDCATMAKANAN000000000000",
+      "parent_id": null,
+      "name": "Makanan",
+      "description": null
+    }
+  ]
+}

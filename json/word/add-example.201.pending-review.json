@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "data": {
+    "id": "01JDEXAMPLEMEDIA0000000001",
+    "meaning_id": "01JDMEANING00000000000000",
+    "source_language_id": "01JDSBSLANG000000000000000",
+    "source_sentence": "Iyo makatn dulu kah?",
+    "target_language_id": "01JDIDNLANG000000000000000",
+    "target_sentence": "Sudah makan dulu, ya?",
+    "source_type": "native_speaker",
+    "notes": null,
+    "status": "pending_review",
+    "is_verified": false,
+    "is_corrected": false
+  }
+}

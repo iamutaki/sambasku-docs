@@ -1,0 +1,11 @@
+{
+  "success": false,
+  "error_code": "VALIDATION_ERROR",
+  "message": "Data yang dikirim tidak valid",
+  "details": [
+    {
+      "field": "related_words",
+      "message": "has_component hanya untuk entri idiom/peribahasa/ungkapan"
+    }
+  ]
+}

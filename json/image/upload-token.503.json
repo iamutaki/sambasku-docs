@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "IMAGE_UPLOAD_UNAVAILABLE",
+  "message": "Penyimpanan gambar belum dikonfigurasi — isi IMAGEKIT_* di .env",
+  "details": null
+}

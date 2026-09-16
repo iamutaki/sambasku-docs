@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "01JDSEARCHMISS0000000000000",
+      "term": "kalintiak dua",
+      "direction": "lemma",
+      "hit_count": 2,
+      "last_searched_at": "2026-09-16T10:05:00.000Z",
+      "is_fulfilled": false,
+      "created_at": "2026-09-16T10:00:00.000Z"
+    },
+    {
+      "id": "01JDSEARCHMISS0000000000001",
+      "term": "roboi",
+      "direction": "lemma",
+      "hit_count": 1,
+      "last_searched_at": "2026-09-16T09:00:00.000Z",
+      "is_fulfilled": false,
+      "created_at": "2026-09-16T09:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "limit": 10,
+    "next_cursor": null,
+    "has_more": false
+  }
+}

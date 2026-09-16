@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "data": {
+    "name": "Kamus Digital Sambas-Indonesia API",
+    "version": "1.0.0",
+    "docs": "/docs",
+    "openapi": "/openapi.json"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "data": {
+    "word_id": "01JDWORDMAKATN000000000000",
+    "lemma": "makatn",
+    "word_type": "word",
+    "status": "published",
+    "created_at": "2026-09-12T02:00:00.000Z",
+    "warnings": [
+      {
+        "field": "lemma",
+        "message": "Lemma serupa sudah ada di bahasa ini"
+      }
+    ],
+    "is_verified": true
+  }
+}

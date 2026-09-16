@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "CONTRIBUTION_NOT_FOUND",
+  "message": "Kontribusi dengan id tersebut tidak ditemukan",
+  "details": null
+}

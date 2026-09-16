@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "RATE_LIMITED",
+  "message": "Terlalu banyak percobaan, coba lagi nanti",
+  "details": null
+}

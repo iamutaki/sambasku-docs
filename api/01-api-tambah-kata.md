@@ -72,7 +72,9 @@ PERUBAHAN SKHEMA (WAJIB — ikuti alur Section 7):
 1. Tambahkan semua tabel di atas sebagai file *.schema.ts (ULID varchar(26)
    untuk semua PK/FK — Section 19; kolom `status` BARU di tabel words)
 2. words.status: varchar(30) NOT NULL DEFAULT 'draft'
-   — nilai: 'draft' | 'pending_review' | 'published'
+   — nilai: 'draft' | 'pending_review' | 'published' | 'rejected'
+   ('pending_review'/'rejected' hanya di-set sistem — approval gate
+   Section 22; request user tetap 'draft' | 'published')
    (update juga docs/dbdiagram.dbml agar tetap sumber desain)
 3. Jalankan:
    pnpm drizzle-kit generate   → REVIEW SQL yang dihasilkan
@@ -152,12 +154,17 @@ ENDPOINT UTAMA (semua di bawah prefix /api/v1 — Section 11):
       entity_type 'word', entity_id word_id, action 'create').
       Gagal salah satu → rollback semua.
       (Use case TIDAK tahu soal transaction — itu urusan infrastructure)
-   d. STATUS DRAFT vs PUBLISHED:
-      - "draft" → simpan apa adanya (words.status = 'draft')
-      - "published" + role admin/editor → words.status = 'published'
-        (langsung tayang)
-      - "published" + role contributor → words.status = 'pending_review'
-        + entry contribution_reviews (status 'pending')
+   d. MODEL PUBLIKASI (Section 22 — approval gate):
+      - "draft" → simpan apa adanya (words.status = 'draft', tidak tayang,
+        tidak masuk antrean)
+      - "published" + role admin/editor/root/reviewer → LANGSUNG tayang
+        (status 'published', is_verified true — self-verified)
+      - "published" + role contributor → status 'pending_review',
+        is_verified false — TIDAK tayang, masuk antrean review
+        (baris contributions dengan status 'pending')
+      - Baris contribution_reviews TIDAK dibuat saat submit — dibuat
+        saat verifikator mengambil keputusan
+        (approve/reject/correct — lihat 03-api-kontribusi-verifikasi.md)
    e. created_by = user_id dari token (c.get('user')) di SEMUA tabel
       yang punya kolom created_by
    f. Audit trail (Section 21): lewat AuditLogRepository (interface
@@ -171,12 +178,19 @@ ENDPOINT UTAMA (semua di bawah prefix /api/v1 — Section 11):
    { "success": true,
      "data": { "word_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
                "lemma": "makatn",
-               "status": "draft",
+               "word_type": "word",
+               "status": "published",
+               "is_verified": true,
                "created_at": "2026-09-09T10:00:00Z",
                "warnings": [
                  { "field": "lemma",
                    "message": "Lemma serupa sudah ada di bahasa ini" }
                ] } }        // warnings hanya ada kalau duplikat terdeteksi
+   // Varian per role (Section 22 — approval gate):
+   // - admin/editor/root/reviewer → status "published", is_verified true
+   // - contributor → status "pending_review", is_verified false
+   //   (tidak tayang — masuk antrean review; toast UI harus jujur
+   //   menyebut status akhir dari response)
 
    Response gagal — envelope standar Section 13 (tanpa field custom):
    - 400: { "success": false, "error_code": "VALIDATION_ERROR",
@@ -226,10 +240,13 @@ ENDPOINT UTAMA (semua di bawah prefix /api/v1 — Section 11):
    Use case: GetWordByIdUseCase
    - :id = ULID string
    - Hanya tampilkan kata yang statusnya 'published' DAN belum
-     soft-deleted (draft/pending_review hanya untuk endpoint admin,
-     menyusul di prompt terpisah)
+     soft-deleted (draft/pending_review/rejected tidak tayang;
+     pending_review/rejected hanya terlihat lewat antrean review —
+     03-api-kontribusi-verifikasi.md)
    - Response 200: { "success": true, "data": { kata lengkap: lemma,
-     language_id, word_type, meanings[] (word_class, definition,
+     language_id, word_type, meanings[] (word_class TERSEMAT sebagai
+     objek {id, code, name, parent_id} — k.benda/k.kerja/k.sifat
+     langsung terbaca tanpa request kedua; definition,
      translations[], examples[]), categories[], pronunciations[],
      images[] (url, alt_text, is_primary), related_words[]
      (word_id, lemma, relation_type), appears_in[] (relasi masuk —
@@ -239,6 +256,25 @@ ENDPOINT UTAMA (semua di bawah prefix /api/v1 — Section 11):
    - Tidak ditemukan → NotFoundError('WORD_NOT_FOUND',
      'Kata dengan id tersebut tidak ditemukan') — kode sudah ada di
      ERROR_CODES.md, tidak ada kode baru
+
+3. POST /api/v1/admin/words/:id/verify
+   (verifikator: admin, root, reviewer — Section 22)
+
+   Use case: VerifyWordUseCase
+   - Set words.is_verified = true + verified_by (dari token) +
+     verified_at (now)
+   - Kata tidak ditemukan / soft-deleted → 404 WORD_NOT_FOUND
+   - Audit trail: action 'verify', new_data { is_verified: true }
+   - Response 200: { "success": true, "data": null }
+
+4. POST /api/v1/admin/words/:id/unverify
+   (cabut verifikasi — verifikator juga)
+
+   Use case: VerifyWordUseCase (verified: false)
+   - Set is_verified = false (verified_by/at ikut ter-update — jejak
+     siapa yang mencabut)
+   - Audit: action 'unverify'
+   - Response 200: { "success": true, "data": null }
 
 ENDPOINT PENDUKUNG (dibutuhkan form admin — definisikan di modul
 pemiliknya masing-masing, pola createRoute sama):
@@ -310,6 +346,9 @@ KEAMANAN & CATATAN:
   pendukung di modul masing-masing — Section 20, satu PR yang sama
 - Endpoint admin lain (update/soft-delete kata) menyusul di prompt
   terpisah dengan pola yang sama
+- Antrean review (approve/reject/correct) + kontribusi media mandiri
+  (gambar/pronounce/contoh pada kata existing): prompt terpisah —
+  `03-api-kontribusi-verifikasi.md`
 
 FORMAT RESPONSE — ENVELOPE STANDAR (Section 13 api-base-stack.md):
 - Sukses: { "success": true, "data": { ... } } (+ meta untuk list)
@@ -343,6 +382,8 @@ FORMAT RESPONSE — ENVELOPE STANDAR (Section 13 api-base-stack.md):
 ## Referensi Terkait
 
 - `api-base-stack.md` — definisi stack & struktur folder lengkap
+- `03-api-kontribusi-verifikasi.md` — antrean review approve/reject/
+  correct + kontribusi media (gambar, pronounce, contoh kalimat)
 - repo `http/` — saat modul ini dikerjakan, buat folder `http/word/`
   dengan satu file `.bru` per endpoint + `tests` (Section 20);
   endpoint pendukung juga (mis. `http/language/list-languages.bru`)
