@@ -1,4 +1,4 @@
-# Base Stack — Kamus Digital Sambas-Indonesia (Backend)
+# Base Stack - Kamus Digital Sambas-Indonesia (Backend)
 
 Dokumen ini jadi acuan tetap untuk semua prompt/fitur backend selanjutnya.
 Setiap prompt fitur baru (auth, admin content, search, dll) akan mengikuti
@@ -10,21 +10,21 @@ struktur dan konvensi di sini, jadi tidak perlu dijelaskan ulang tiap kali.
 
 | Layer                    | Pilihan                                        | Alasan                                                                                      |
 | ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Runtime                  | Node.js (v20+ LTS) **dan Cloudflare Workers** (dual entry — lihat Section 8) | Kompatibilitas library terluas + opsi edge; satu composition root untuk dua runtime |
+| Runtime                  | Node.js (v20+ LTS) **dan Cloudflare Workers** (dual entry - lihat Section 8) | Kompatibilitas library terluas + opsi edge; satu composition root untuk dua runtime |
 | Framework                | Hono                                           | Ringan, cepat, tidak memaksa struktur (cocok clean architecture)                            |
 | Bahasa                   | TypeScript                                     | Type safety, wajib untuk clean architecture yang solid                                      |
 | ORM/Query Builder        | Drizzle ORM + drizzle-kit                      | Type-safe, ringan, migrasi eksplisit, cocok dgn Hono                                        |
-| DB Driver                | `pg` via `drizzle-orm/node-postgres`       | Koneksi TCP standar PostgreSQL —**generik, no vendor lock-in** (lihat Section 9)     |
+| DB Driver                | `pg` via `drizzle-orm/node-postgres`       | Koneksi TCP standar PostgreSQL -**generik, no vendor lock-in** (lihat Section 9)     |
 | Database                 | PostgreSQL (hosting: Neon)                     | Sesuai skema DBML yang sudah dirancang; provider bisa diganti kapan saja                    |
 | Validasi & API Docs      | Zod +`@hono/zod-openapi`                     | Validasi schema-first, sekaligus generate OpenAPI spec otomatis dari schema yang sama       |
 | API Reference UI         | Scalar (`@scalar/hono-api-reference`)        | Render dokumentasi API interaktif dari OpenAPI spec, auto-update tiap endpoint baru         |
 | Auth                     | JWT (RS256) via`jose`                        | Access + refresh token, lihat`00-api-auth.md`                                             |
-| ID Generation            | `ulid`                                       | ULID — time-sortable, URL-safe, 26 char, no DB sequence needed (lihat Section 19)          |
+| ID Generation            | `ulid`                                       | ULID - time-sortable, URL-safe, 26 char, no DB sequence needed (lihat Section 19)          |
 | Package manager          | pnpm                                           | Instalasi cepat, hemat disk, cocok untuk struktur modular                                   |
-| Testing                  | Vitest (unit + integration + E2E)              | Cepat, native ESM/TS support — lihat Section 10 untuk strategi lengkap                     |
-| HTTP client (fungsional) | Bruno — koleksi di repo`http/`              | Plain file`.bru` tersimpan di git, bisa dijalankan CLI (CI) & GUI — lihat Section 20     |
-| Audit trail              | tabel`audit_logs` + modul `modules/audit/` | Setiap mutasi data tercatat siapa-kapan-apa, bisa ditelusuri — lihat Section 21            |
-| Image hosting            | ImageKit via`ImageStoragePort`               | Wrapper provider-agnostic — ganti provider tinggal ganti impl (pola port, lihat Section 8) |
+| Testing                  | Vitest (unit + integration + E2E)              | Cepat, native ESM/TS support - lihat Section 10 untuk strategi lengkap                     |
+| HTTP client (fungsional) | Bruno - koleksi di repo`http/`              | Plain file`.bru` tersimpan di git, bisa dijalankan CLI (CI) & GUI - lihat Section 20     |
+| Audit trail              | tabel`audit_logs` + modul `modules/audit/` | Setiap mutasi data tercatat siapa-kapan-apa, bisa ditelusuri - lihat Section 21            |
+| Image hosting            | ImageKit via`ImageStoragePort`               | Wrapper provider-agnostic - ganti provider tinggal ganti impl (pola port, lihat Section 8) |
 | Lint/Format              | ESLint + Prettier                              | Konsistensi kode antar kontributor                                                          |
 
 ---
@@ -42,24 +42,24 @@ Infrastructure → Application & Domain (implementasi interface)
 - **Domain**: Inti bisnis. Tidak tahu apa-apa soal database, HTTP, atau
   framework. Murni TypeScript.
 - **Application**: Use case / business logic. Bergantung pada Domain,
-  dan pada *interface* (abstraksi) dari Infrastructure — bukan
+  dan pada *interface* (abstraksi) dari Infrastructure - bukan
   implementasinya.
-- **Infrastructure**: Implementasi konkret — Drizzle, JWT, email service,
+- **Infrastructure**: Implementasi konkret - Drizzle, JWT, email service,
   dll. Mengimplementasikan interface yang didefinisikan di Application
   (ports) maupun Domain (repository contract).
 - **Presentation**: Hono routes, controllers, middleware, request/response
   mapping. Titik masuk HTTP.
 
 Composition root (`main.ts`) yang merakit semua dependency (manual DI,
-tanpa framework DI tambahan — cukup untuk skala proyek ini).
+tanpa framework DI tambahan - cukup untuk skala proyek ini).
 
 ---
 
-## 3. Struktur Folder — Feature-Based (Modular) + Clean Architecture
+## 3. Struktur Folder - Feature-Based (Modular) + Clean Architecture
 
 Pendekatan: **bungkus per modul/fitur**, dan di dalam tiap modul tetap
 menerapkan clean architecture (domain → application → infrastructure →
-presentation). Kadang disebut *screaming architecture* — struktur folder
+presentation). Kadang disebut *screaming architecture* - struktur folder
 langsung "berteriak" fitur apa saja yang ada, bukan pola arsitektur
 abstrak semata.
 
@@ -68,7 +68,7 @@ bertambah (word, auth, category, contribution, translation, dst),
 layer-based akan membuat file dari fitur berbeda tercampur dalam satu
 folder flat (`domain/entities/word.entity.ts`,
 `domain/entities/user.entity.ts`, `domain/entities/category.entity.ts`,
-dst) — sulit dilihat cakupan satu fitur, dan rawan konflik saat
+dst) - sulit dilihat cakupan satu fitur, dan rawan konflik saat
 dikerjakan banyak kontributor. Feature-based menjaga arah dependency
 clean architecture tetap sama, hanya di-scope per modul.
 
@@ -156,7 +156,7 @@ src/
 │   └── config/
 │       └── env.ts                     # load & validasi environment variables
 │
-└── main.ts                            # composition root — rakit semua modul
+└── main.ts                            # composition root - rakit semua modul
 ```
 
 **Catatan penting:** schema Drizzle tetap diletakkan terpusat di
@@ -179,20 +179,20 @@ tinggal di masing-masing modul (`modules/word/infrastructure/`,
    `CreateWordUseCase.execute(dto)` dari
    `modules/word/application/use-cases/create-word.use-case.ts`
 3. **Application**: use case jalankan business logic (cek duplikasi, dll)
-   → panggil `WordRepository.save()` — interface dari
+   → panggil `WordRepository.save()` - interface dari
    `modules/word/domain/repositories/word.repository.ts`
 4. **Infrastructure**: `modules/word/infrastructure/word.repository.impl.ts`
    (implementasi konkret) eksekusi query Drizzle ke PostgreSQL
 5. Response balik naik ke Controller → dikembalikan sebagai JSON
 
 Domain & Application di dalam modul manapun **tidak pernah** import apa
-pun dari Drizzle atau Hono secara langsung — semua lewat interface. Ini
+pun dari Drizzle atau Hono secara langsung - semua lewat interface. Ini
 yang membuat business logic bisa di-test tanpa perlu database beneran,
 dan gampang ganti ORM/framework di masa depan kalau perlu.
 
 Antar modul (misal `word` butuh cek `user` yang login) berkomunikasi
 lewat interface yang diekspor modul lain, bukan saling import langsung
-ke internal (domain/infrastructure) modul lain — jaga batas modul tetap
+ke internal (domain/infrastructure) modul lain - jaga batas modul tetap
 jelas.
 
 ---
@@ -220,7 +220,7 @@ jelas.
 - [ ] Setup `drizzle.config.ts` + koneksi PostgreSQL
 - [ ] Generate schema Drizzle terpusat (`shared/database/drizzle/schema/`)
   dari file `.dbml` yang sudah dibuat
-- [ ] Setup environment variables (`.env`) — DB connection string, JWT
+- [ ] Setup environment variables (`.env`) - DB connection string, JWT
   private/public key
 - [ ] Setup `error-handler.middleware.ts` global untuk Hono di `shared/middlewares/`
 - [ ] Buat folder `modules/` kosong dengan modul pertama: `auth/` dan `word/`
@@ -231,13 +231,13 @@ jelas.
 
 ## 7. Strategi Migration Database
 
-Migration tool yang dipakai: **Drizzle Kit** — satu ekosistem dengan
+Migration tool yang dipakai: **Drizzle Kit** - satu ekosistem dengan
 Drizzle ORM, bukan tool terpisah.
 
 **Prinsip:** skema database didefinisikan sebagai kode (file
 `*.schema.ts` di `shared/database/drizzle/schema/`), bukan diubah manual
 lewat GUI/psql langsung ke database. Setiap perubahan skema **wajib**
-lewat migration file yang tercatat, di-review, dan di-commit ke git —
+lewat migration file yang tercatat, di-review, dan di-commit ke git -
 sama seperti perubahan kode aplikasi biasa.
 
 ### Alur kerja setiap ada perubahan skema
@@ -265,12 +265,12 @@ sama seperti perubahan kode aplikasi biasa.
 ### Aturan Wajib
 
 - **Semua tabel WAJIB implementasi soft delete** (`deleted_at` timestamp +
-  `deleted_by` varchar FK users) — TIDAK ADA hard delete di level aplikasi.
+  `deleted_by` varchar FK users) - TIDAK ADA hard delete di level aplikasi.
   Pengecualian HANYA untuk:
-  - `audit_logs` — jejak audit bersifat immutable (menghapusnya mengalahkan tujuannya)
-  - `refresh_tokens` / `password_reset_tokens` — ephemeral, lifecycle via
+  - `audit_logs` - jejak audit bersifat immutable (menghapusnya mengalahkan tujuannya)
+  - `refresh_tokens` / `password_reset_tokens` - ephemeral, lifecycle via
     `is_revoked`/`is_used`/`expires_at` + cleanup berkala
-  - `word_categories` (junction) — hanya `deleted_at` tanpa `deleted_by`
+  - `word_categories` (junction) - hanya `deleted_at` tanpa `deleted_by`
     (link bukan entri; visibility mengikuti parent word yang di-soft-delete)
 
   Query baca WAJIB filter `WHERE deleted_at IS NULL` untuk mengecualikan
@@ -278,11 +278,11 @@ sama seperti perubahan kode aplikasi biasa.
 
 - **TIDAK BOLEH mengubah nama ATAU isi migration yang sudah pernah
   dijalankan** di environment manapun (termasuk local dev milik
-  kontributor lain) — KECUALI mendapat persetujuan eksplisit seluruh tim.
-  Kalau ada kesalahan, buat migration baru untuk memperbaikinya — jangan
+  kontributor lain) - KECUALI mendapat persetujuan eksplisit seluruh tim.
+  Kalau ada kesalahan, buat migration baru untuk memperbaikinya - jangan
   ubah yang lama. Ini menjaga riwayat migrasi tetap konsisten di semua
   environment.
-- **Nama migration WAJIB deskriptif sesuai isinya** — gunakan flag
+- **Nama migration WAJIB deskriptif sesuai isinya** - gunakan flag
   `--name` saat generate. DILARANG menyimpan migration dengan nama
   random yang dihasilkan drizzle-kit tanpa `--name`.
   Format: `<nomor>_<kebab-case-deskriptif>.sql`
@@ -291,7 +291,7 @@ sama seperti perubahan kode aplikasi biasa.
 - **Migration dijalankan otomatis saat deploy** (bagian dari CI/CD atau
   startup script), bukan manual oleh developer di server production.
 - **Kontributor baru** cukup jalankan `pnpm drizzle-kit migrate` setelah
-  clone project — database lokal mereka otomatis sinkron dengan skema
+  clone project - database lokal mereka otomatis sinkron dengan skema
   terbaru tanpa setup manual.
 - Untuk perubahan yang berisiko hilangkan data (drop kolom, ubah tipe
   data), buat migration bertahap: tambah kolom baru → migrasi data →
@@ -301,7 +301,7 @@ sama seperti perubahan kode aplikasi biasa.
 
 | Command                       | Fungsi                                                                     |
 | ----------------------------- | -------------------------------------------------------------------------- |
-| `pnpm drizzle-kit generate --name=<deskriptif>` | Generate file migrasi SQL — **WAJIB pakai `--name`** (tanpa itu hasilnya nama random tak deskriptif) |
+| `pnpm drizzle-kit generate --name=<deskriptif>` | Generate file migrasi SQL - **WAJIB pakai `--name`** (tanpa itu hasilnya nama random tak deskriptif) |
 | `pnpm drizzle-kit migrate`  | Jalankan migrasi yang belum diterapkan ke database                         |
 | `pnpm drizzle-kit studio`   | Buka GUI ringan untuk lihat isi database (dev only)                        |
 | `pnpm drizzle-kit drop`     |
@@ -311,11 +311,11 @@ Contoh penamaan yang benar:
     pnpm drizzle-kit generate --name=add-soft-delete
     pnpm drizzle-kit generate --name=create-audit-logs
 
-Hasil: 0007_add_soft_delete.sql — terbaca jelas di diff/PR apa isinya. Hapus migration file terakhir yang belum dijalankan (kalau salah generate) |
+Hasil: 0007_add_soft_delete.sql - terbaca jelas di diff/PR apa isinya. Hapus migration file terakhir yang belum dijalankan (kalau salah generate) |
 
 ---
 
-## 8. Portability — Tidak Vendor Lock-in
+## 8. Portability - Tidak Vendor Lock-in
 
 Prinsip: **provider database, hosting, dan infrastruktur pendukung
 lainnya harus bisa diganti tanpa mengubah business logic**, hanya
@@ -330,13 +330,13 @@ ini:
 drizzle-orm/node-postgres  (pakai library "pg")
 ```
 
-**Bukan** `drizzle-orm/neon-http` atau `neon-serverless` — driver
+**Bukan** `drizzle-orm/neon-http` atau `neon-serverless` - driver
 tersebut memang dioptimalkan untuk Neon (HTTP-based, cocok
 edge/serverless function), tapi mengunci kode ke API khusus Neon.
 
 Karena base stack kita jalan di **Node.js runtime biasa** (bukan
 Cloudflare Workers/Vercel Edge), driver generik `pg` sudah paling tepat
-— berjalan sama persis di Neon, Supabase, AWS RDS, self-hosted
+- berjalan sama persis di Neon, Supabase, AWS RDS, self-hosted
 PostgreSQL, atau provider mana pun yang bicara protokol PostgreSQL
 standar.
 
@@ -355,9 +355,9 @@ export const db = drizzle(pool);
 **Satu-satunya file yang perlu diubah kalau pindah provider:** file di
 atas + environment variable `DATABASE_URL`. Tidak ada file lain
 (`*.repository.impl.ts`, use case, entity) yang menyentuh driver
-koneksi secara langsung — semua akses lewat instance `db` yang
+koneksi secara langsung - semua akses lewat instance `db` yang
 di-export dari sini. Primary key juga DB-agnostic: semua tabel pakai
-ULID — lihat Section 19. Contoh konkret pembagiannya (Docker di lokal,
+ULID - lihat Section 19. Contoh konkret pembagiannya (Docker di lokal,
 Neon di staging/production) ada di Section 17.
 
 ### Dua Runtime: Node + Cloudflare Workers (Dual Entry)
@@ -368,14 +368,14 @@ Backend bisa dijalankan di DUA runtime dengan satu composition root
 | Runtime | Entry | Koneksi DB | Email | Catatan |
 | --- | --- | --- | --- | --- |
 | Node (default dev/test) | `main.ts` (`@hono/node-server`) | `pg` TCP langsung (`DATABASE_URL`) | SMTP (nodemailer) atau Resend | `pnpm dev` |
-| Cloudflare Workers | `worker.ts` (`export default { fetch }`) | **driver Neon serverless (WebSocket)** via secret `DATABASE_URL` — pool PER-REQUEST (AsyncLocalStorage, lihat `client.ts`) | Resend (HTTP) | `pnpm dev:worker` / `pnpm deploy` |
+| Cloudflare Workers | `worker.ts` (`export default { fetch }`) | **driver Neon serverless (WebSocket)** via secret `DATABASE_URL` - pool PER-REQUEST (AsyncLocalStorage, lihat `client.ts`) | Resend (HTTP) | `pnpm dev:worker` / `pnpm deploy` |
 
 Keputusan penting (hasil diagnosis staging 2026-09-17):
 
-- **Workers ≠ driver `pg`/node:net** — terbukti flaky ±25% (socket bisu
+- **Workers ≠ driver `pg`/node:net** - terbukti flaky ±25% (socket bisu
   "Query read timeout", konsisten dengan/tanpa Hyperdrive). Jalur yang
   stabil: `@neondatabase/serverless` (WebSocket, transaksi didukung).
-- **WebSocket = I/O milik request pembuatnya** — Workers melarang
+- **WebSocket = I/O milik request pembuatnya** - Workers melarang
   objek I/O dipakai lintas request ("Cannot perform I/O on behalf of a
   different request"). Karena itu `client.ts` di Workers adalah FACADE
   per-request: middleware `requestDb` membuat pool per request dan
@@ -385,22 +385,22 @@ Keputusan penting (hasil diagnosis staging 2026-09-17):
 - **Konsekuensi disadari**: jalur Workers terikat adapter Neon (§8 direvisi
   dari posisi awal yang menolak driver Neon). Mitigasi: DB tetap Postgres
   standar (dump/restore ke mana pun) + entry Node tetap memakai `pg`
-  generik — keluar dari Neon = keluar dari Workers, bukan rewrite.
+  generik - keluar dari Neon = keluar dari Workers, bukan rewrite.
 - **Hyperdrive tidak dipakai jalur Workers** saat ini (driver WS tidak
   bicara protokol wire Postgres; dan kombinasi Hyperdrive+pg kena flaky
   di atas). `neon-http` tetap ditolak: transaksi tidak didukung. D1
   tetap ditolak: ganti dialek total (`ilike`, `selectDistinctOn`,
   error code PG, riwayat migration).
 - Impl provider runtime-agnostic: password hashing **PBKDF2 via Web
-  Crypto** (100.000 iterasi — plafon Workers; hash-wasm/argon2 TIDAK
+  Crypto** (100.000 iterasi - plafon Workers; hash-wasm/argon2 TIDAK
   bisa: Workers melarang kompilasi WASM dinamis, bahkan saat
   module-init), signing ImageKit pakai Web Crypto, logger = JSON via
   `console` (Workers Logs).
 - `worker.ts` memakai **lazy import**: isi `process.env` dari bindings
-  dulu, baru `import('./app')` — karena `env.ts`/`client.ts` membaca
+  dulu, baru `import('./app')` - karena `env.ts`/`client.ts` membaca
   env saat module load. Migration TETAP dari CI Node (`drizzle-kit
   migrate` dengan direct URL).
-- Rate limiter in-memory di Workers bersifat **per-isolate** — jalan
+- Rate limiter in-memory di Workers bersifat **per-isolate** - jalan
   untuk awal, upgrade ke Durable Objects/Redis kalau disalahgunakan.
 
 ### Hal yang Perlu Dihindari agar Tetap Portable
@@ -415,17 +415,17 @@ Keputusan penting (hasil diagnosis staging 2026-09-17):
 - ✅ Environment variable (`DATABASE_URL`) adalah satu-satunya sumber
   informasi soal provider mana yang sedang dipakai
 - ✅ File migration SQL yang di-generate Drizzle Kit adalah SQL standar
-  PostgreSQL — portable ke provider mana pun tanpa modifikasi
+  PostgreSQL - portable ke provider mana pun tanpa modifikasi
 - ✅ Provider eksternal (SMTP, ImageKit, dst) HANYA boleh dipanggil lewat
   port di `application/ports/` + implementasi di `infrastructure/`
-  (pola `MailerPort`, `ImageStoragePort`) — kode hanya bergantung pada
+  (pola `MailerPort`, `ImageStoragePort`) - kode hanya bergantung pada
   interface, ganti provider = ganti satu file impl
 
 ---
 
 ## 9. Dokumentasi API Otomatis (OpenAPI + Scalar)
 
-Prinsip: **dokumentasi API tidak ditulis manual terpisah** — di-generate
+Prinsip: **dokumentasi API tidak ditulis manual terpisah** - di-generate
 otomatis dari schema Zod yang sudah dipakai untuk validasi request.
 Tidak ada dua sumber kebenaran (validasi vs dokumentasi) yang bisa
 saling tidak sinkron.
@@ -434,7 +434,7 @@ saling tidak sinkron.
 
 | Library                        | Fungsi                                                                                                                     |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| `@hono/zod-openapi`          | Pengganti Hono biasa untuk route — schema Zod yang sama dipakai untuk validasi request/response DAN generate OpenAPI spec |
+| `@hono/zod-openapi`          | Pengganti Hono biasa untuk route - schema Zod yang sama dipakai untuk validasi request/response DAN generate OpenAPI spec |
 | `@scalar/hono-api-reference` | Middleware Hono yang render UI dokumentasi interaktif dari OpenAPI spec (menggantikan Swagger UI)                          |
 
 ### Perubahan pada Struktur Validator
@@ -479,7 +479,7 @@ export default app;
 
 Setiap kali sebuah endpoint baru dibuat dengan pola `createRoute` +
 `app.openapi(...)`, dokumentasinya **otomatis muncul** di halaman
-Scalar tanpa langkah tambahan apa pun — cukup isi `summary`, `tags`,
+Scalar tanpa langkah tambahan apa pun - cukup isi `summary`, `tags`,
 dan schema request/response yang memang sudah wajib ditulis untuk
 validasi.
 
@@ -515,7 +515,7 @@ app.get(
 ```
 
 Dengan ini, `GET /docs` selalu menampilkan dokumentasi API yang
-mencerminkan kode saat itu juga — setiap prompt fitur baru yang
+mencerminkan kode saat itu juga - setiap prompt fitur baru yang
 dijalankan (mengikuti pola `createRoute` di atas) otomatis menambah
 entri baru di dokumentasi tanpa perlu ditulis manual.
 
@@ -536,7 +536,7 @@ datang) **wajib** mengikuti pola `@hono/zod-openapi` di atas:
 
 Cakupan: **unit test + integration test + E2E test**, ketiganya
 dijalankan dengan **Vitest**. File test **terpisah di folder
-`__tests__/` per modul** — tidak co-located dengan source, dan tidak
+`__tests__/` per modul** - tidak co-located dengan source, dan tidak
 digabung jadi satu folder `tests/` di root.
 
 ### Struktur Folder per Modul
@@ -562,14 +562,14 @@ modules/auth/
 Pola yang sama berlaku untuk `modules/word/__tests__/`, dan modul
 lainnya.
 
-### 1. Unit Test — Domain & Application Layer
+### 1. Unit Test - Domain & Application Layer
 
 **Target:** use case, entity, value object. **Tidak menyentuh database
 atau HTTP sama sekali.**
 
 Karena `application/` hanya bergantung pada *interface*
 (`*.repository.ts`, `*.port.ts`), dependency di-mock manual dengan
-`vi.fn()` — tidak perlu database beneran, tidak perlu jalankan server.
+`vi.fn()` - tidak perlu database beneran, tidak perlu jalankan server.
 
 ```ts
 // modules/auth/__tests__/unit/login-user.use-case.test.ts
@@ -594,9 +594,9 @@ describe('LoginUserUseCase', () => {
 ```
 
 Ini lapisan test **paling banyak jumlahnya** dan **paling cepat
-dijalankan** — jadi prioritas utama coverage.
+dijalankan** - jadi prioritas utama coverage.
 
-### 2. Integration Test — Infrastructure Layer
+### 2. Integration Test - Infrastructure Layer
 
 **Target:** implementasi repository (`*.repository.impl.ts`) yang
 benar-benar bicara ke PostgreSQL. Butuh **database test terpisah**
@@ -609,7 +609,7 @@ Setup:
 - Migration dijalankan (`drizzle-kit migrate`) ke database test sebelum
   test suite berjalan
 - Tiap test dibungkus transaction yang di-rollback setelah selesai
-  (atau truncate tabel di `afterEach`) — supaya test tidak saling
+  (atau truncate tabel di `afterEach`) - supaya test tidak saling
   mempengaruhi data
 
 ```ts
@@ -633,7 +633,7 @@ describe('UserRepositoryImpl', () => {
 });
 ```
 
-### 3. E2E Test — Full HTTP Flow
+### 3. E2E Test - Full HTTP Flow
 
 **Target:** endpoint lengkap dari HTTP request masuk sampai response
 keluar, lewat instance Hono yang sesungguhnya (pakai `hono/testing`,
@@ -665,7 +665,7 @@ describe('POST /api/auth/login (E2E)', () => {
 ```
 
 E2E test butuh database test yang sudah di-**seed** data awal (user
-contoh, kata contoh) sebelum suite berjalan — biasanya lewat script
+contoh, kata contoh) sebelum suite berjalan - biasanya lewat script
 `seed-test-db.ts` yang dijalankan di `globalSetup` Vitest.
 
 ### Command & Konfigurasi
@@ -682,19 +682,19 @@ contoh, kata contoh) sebelum suite berjalan — biasanya lewat script
 ```
 
 Integration & E2E test butuh `DATABASE_URL` yang mengarah ke database
-test (bukan dev/production) — diset lewat `.env.test`, dimuat khusus
+test (bukan dev/production) - diset lewat `.env.test`, dimuat khusus
 saat `NODE_ENV=test`.
 
 ### Aturan Wajib
 
-- **Setiap use case baru wajib punya unit test** sebelum PR di-merge —
+- **Setiap use case baru wajib punya unit test** sebelum PR di-merge -
   ini yang paling murah dan cepat, tidak ada alasan untuk skip
 - **Setiap repository implementasi baru wajib punya integration test**
   minimal untuk operasi create & read
 - **Setiap endpoint baru wajib punya minimal 1 E2E test** untuk
   happy path + 1 untuk skenario gagal (validasi/auth)
 - Integration & E2E test **tidak boleh** jalan ke database
-  dev/production — selalu ke database test terisolasi
+  dev/production - selalu ke database test terisolasi
 - CI (GitHub Actions) menjalankan `test:unit` di setiap push/PR, dan
   `test:integration` + `test:e2e` sebelum job migration/deploy
   (lihat Section 7 & diskusi CI/CD sebelumnya)
@@ -711,7 +711,7 @@ berdampingan.
 
 ### Strategi: URI Versioning
 
-Dipilih **URI path versioning** (`/api/v1/...`) — bukan header-based
+Dipilih **URI path versioning** (`/api/v1/...`) - bukan header-based
 (`Accept-Version: v1`) atau query param (`?version=1`). Alasan: paling
 eksplisit, gampang di-debug (kelihatan langsung di URL/log), gampang
 di-routing terpisah di Hono, dan paling umum dipahami konsumen API.
@@ -728,7 +728,7 @@ di-routing terpisah di Hono, dan paling umum dipahami konsumen API.
 ### Dampak ke Struktur Folder
 
 Versioning **tidak** menduplikasi seluruh modul. Domain & application
-layer (business logic) tetap satu — yang berubah karena breaking change
+layer (business logic) tetap satu - yang berubah karena breaking change
 biasanya di **presentation layer** (bentuk request/response) atau
 kadang di use case tertentu saja.
 
@@ -758,7 +758,7 @@ modules/word/
 (rename field, ubah struktur JSON), cukup buat controller & validator
 baru di `presentation/v2/` yang tetap memanggil use case v1 yang sama.
 Kalau breaking change menyangkut **business logic**, baru buat use case
-baru — tapi ini jarang terjadi dan sebaiknya dihindari (business logic
+baru - tapi ini jarang terjadi dan sebaiknya dihindari (business logic
 harusnya versi-agnostic).
 
 ### Registrasi di Composition Root
@@ -786,7 +786,7 @@ app.get('/docs', apiReference({ spec: { url: '/openapi.json' } }));
 
 > **Catatan:** semua contoh path di section-section sebelumnya
 > (`/api/auth/login`, `/api/admin/words`, dst) mengasumsikan prefix
-> `/api/v1/` — anggap `/api/v1/auth/login`, `/api/v1/admin/words`, dan
+> `/api/v1/` - anggap `/api/v1/auth/login`, `/api/v1/admin/words`, dan
 > seterusnya.
 
 ### Apa yang Termasuk Breaking Change (wajib naik versi)
@@ -806,13 +806,13 @@ app.get('/docs', apiReference({ spec: { url: '/openapi.json' } }));
 
 ### Kebijakan Deprecation
 
-1. Saat `v2` rilis, `v1` **tidak langsung dimatikan** — beri masa
-   transisi (misal 3–6 bulan, sesuaikan jumlah konsumen API)
+1. Saat `v2` rilis, `v1` **tidak langsung dimatikan** - beri masa
+   transisi (misal 3-6 bulan, sesuaikan jumlah konsumen API)
 2. Endpoint versi lama diberi response header penanda:
    `Deprecation: true` dan `Sunset: <tanggal-mati>` (standar HTTP,
    `RFC 8594`)
 3. Dokumentasikan migrasi v1 → v2 di changelog terpisah
-   (`CHANGELOG-API.md`) — apa yang berubah, contoh before/after
+   (`CHANGELOG-API.md`) - apa yang berubah, contoh before/after
 4. Setelah masa transisi berakhir, endpoint v1 dihapus di rilis
    berikutnya (bukan tiba-tiba, harus ada pengumuman)
 
@@ -869,10 +869,10 @@ const envSchema = z.object({
 
 export const env = envSchema.parse(process.env);
 // Aplikasi CRASH saat start kalau ada env wajib yang hilang/salah format
-// — lebih baik gagal cepat di awal daripada error tak jelas di production
+// - lebih baik gagal cepat di awal daripada error tak jelas di production
 ```
 
-Semua kode lain **wajib** import `env` dari file ini — dilarang akses
+Semua kode lain **wajib** import `env` dari file ini - dilarang akses
 `process.env` langsung di file manapun selain `env.ts`.
 
 ### File `.env.example`
@@ -907,19 +907,19 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173
 | Test                | `.env.test` (git-ignored)                                                      | `DATABASE_URL` mengarah ke DB test terpisah (Section 10)                                           |
 | CI (GitHub Actions) | GitHub Secrets                                                                   | Diset lewat Settings → Secrets, di-inject sebagai env di workflow                                   |
 | Staging/Production (Node)  | GitHub Environments + secrets provider hosting (Railway/Render/Fly.io vars, dst) | Terpisah per environment, akses dibatasi + butuh approval untuk deploy production (lihat Section 16) |
-| Production (Workers) | `wrangler.toml [vars]` (non-secret) + `wrangler secret put` (secret) + binding Hyperdrive | Setup lengkap di Section 17 — "Deploy ke Cloudflare Workers"; DB lewat `HYPERDRIVE.connectionString` |
+| Production (Workers) | `wrangler.toml [vars]` (non-secret) + `wrangler secret put` (secret) + binding Hyperdrive | Setup lengkap di Section 17 - "Deploy ke Cloudflare Workers"; DB lewat `HYPERDRIVE.connectionString` |
 
 ### Aturan Wajib
 
-- `.env` dan `.env.test` **wajib** masuk `.gitignore` — hanya
+- `.env` dan `.env.test` **wajib** masuk `.gitignore` - hanya
   `.env.example` yang di-commit
 - **Rotasi JWT key**: jika `JWT_PRIVATE_KEY` pernah bocor/ter-commit
-  tidak sengaja, generate pasangan key baru — ini akan invalidate semua
+  tidak sengaja, generate pasangan key baru - ini akan invalidate semua
   access token yang beredar (aman by design, karena access token umur
   pendek/15 menit)
 - Untuk tim yang berkembang, pertimbangkan secrets manager terpisah
   (Infisical, Doppler, atau 1Password Secrets) alih-alih env var mentah
-  di platform hosting — belum wajib di skala proyek saat ini, tapi
+  di platform hosting - belum wajib di skala proyek saat ini, tapi
   dicatat sebagai upgrade path
 
 ---
@@ -927,7 +927,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173
 ## 13. Global Error Handling & Response Envelope
 
 Prinsip: **satu bentuk response** untuk semua endpoint, sukses maupun
-gagal, di seluruh modul — supaya konsumen API (frontend admin, aplikasi
+gagal, di seluruh modul - supaya konsumen API (frontend admin, aplikasi
 mobile nanti) hanya perlu menangani satu pola parsing.
 
 ### Format Envelope Standar
@@ -941,7 +941,7 @@ mobile nanti) hanya perlu menangani satu pola parsing.
 }
 ```
 
-**Sukses (list, dengan pagination cursor — lihat subsection "Pagination" di bawah):**
+**Sukses (list, dengan pagination cursor - lihat subsection "Pagination" di bawah):**
 
 ```json
 {
@@ -982,18 +982,18 @@ mobile nanti) hanya perlu menangani satu pola parsing.
 }
 ```
 
-### Pagination — Cursor-Based (WAJIB untuk semua endpoint list)
+### Pagination - Cursor-Based (WAJIB untuk semua endpoint list)
 
 Semua endpoint yang mengembalikan list memakai **cursor-based
-pagination**, bukan offset — `LIMIT/OFFSET` dan `COUNT(*)` dilarang:
+pagination**, bukan offset - `LIMIT/OFFSET` dan `COUNT(*)` dilarang:
 
-- `OFFSET n` memindai dan membuang n baris — makin dalam halaman,
+- `OFFSET n` memindai dan membuang n baris - makin dalam halaman,
   makin lambat (O(n) per halaman)
 - `COUNT(*)` untuk `total_items`/`total_pages` makin mahal seiring
-  tabel membesar — dan angkanya langsung basi begitu ada insert lain
+  tabel membesar - dan angkanya langsung basi begitu ada insert lain
 
 **Cursor = ULID `id` item terakhir halaman sebelumnya.** Ini nyaris
-gratis karena ULID lexicographically sortable by waktu (Section 19) —
+gratis karena ULID lexicographically sortable by waktu (Section 19) -
 `ORDER BY id` = urut waktu pembuatan, dan `id` selalu ter-index (PK).
 
 Kontrak per endpoint list:
@@ -1004,8 +1004,8 @@ Kontrak per endpoint list:
 | Urutan                          | `ORDER BY id DESC` (terbaru dulu) kecuali disebut lain                                                     |
 | Halaman berikutnya              | `WHERE id < cursor ORDER BY id DESC LIMIT limit + 1`                                                       |
 | `has_more`                    | hasil fetch`limit + 1` → lebih dari `limit` berarti `true`, item ke-n+1 dibuang                       |
-| `meta`                        | `{ "limit": 20, "next_cursor": "<ULID>\|null", "has_more": bool }` — TANPA `total_items`/`total_pages` |
-| Sort kolom lain (mis.`lemma`) | hanya boleh kalau cursor tetap unik & ter-index — paling aman tetap`id`                                   |
+| `meta`                        | `{ "limit": 20, "next_cursor": "<ULID>\|null", "has_more": bool }` - TANPA `total_items`/`total_pages` |
+| Sort kolom lain (mis.`lemma`) | hanya boleh kalau cursor tetap unik & ter-index - paling aman tetap`id`                                   |
 
 Konsumen (web/admin) memakai pola *infinite scroll* / tombol
 "Muat lagi": render `data`, kalau `has_more` tampilkan tombol yang
@@ -1064,7 +1064,7 @@ export class ConflictError extends AppError {
 ```
 
 Use case di `application/` melempar error class ini langsung (misal
-`throw new NotFoundError('WORD_NOT_FOUND', 'Kata tidak ditemukan')`) —
+`throw new NotFoundError('WORD_NOT_FOUND', 'Kata tidak ditemukan')`) -
 **tidak** tahu soal Hono atau HTTP status code, cuma tahu jenis
 errornya.
 
@@ -1089,7 +1089,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
     );
   }
 
-  // Error tak terduga — jangan bocorkan detail internal ke client
+  // Error tak terduga - jangan bocorkan detail internal ke client
   logger.error({ err, request_id: c.get('requestId') }, 'Unhandled error');
   return c.json(
     { success: false, error_code: 'INTERNAL_ERROR', message: 'Terjadi kesalahan pada server' },
@@ -1098,19 +1098,19 @@ export const errorHandler: ErrorHandler = (err, c) => {
 };
 ```
 
-Didaftarkan sekali di `main.ts` via `app.onError(errorHandler)` —
+Didaftarkan sekali di `main.ts` via `app.onError(errorHandler)` -
 **tidak perlu try-catch manual di tiap controller.**
 
 ### Route Tidak Ditemukan (404)
 
-Hono punya **dua jalur error yang berbeda** — keduanya wajib di-handle:
+Hono punya **dua jalur error yang berbeda** - keduanya wajib di-handle:
 
 | Jalur            | Pemicu                               | Handler                    |
 | ---------------- | ------------------------------------ | -------------------------- |
 | `app.onError`  | Error dilempar dari handler/use case | `errorHandler` (di atas) |
 | `app.notFound` | Request tidak cocok route manapun    | wajib didaftarkan sendiri  |
 
-Tanpa `app.notFound`, Hono membalas plain text `404 Not Found` —
+Tanpa `app.notFound`, Hono membalas plain text `404 Not Found` -
 **melanggar prinsip envelope satu bentuk response**. Daftarkan sekali
 di composition root:
 
@@ -1129,7 +1129,7 @@ app.notFound((c) =>
 );
 ```
 
-Root (`GET /`) juga jangan dibiarkan 404 — cukup satu endpoint info
+Root (`GET /`) juga jangan dibiarkan 404 - cukup satu endpoint info
 kecil yang menunjuk ke dokumentasi (meta route, tidak perlu ikut
 OpenAPI spec):
 
@@ -1145,7 +1145,7 @@ app.get('/', (c) =>
 ### Katalog Error Code
 
 Wajib dijaga sebagai dokumen hidup terpisah (`ERROR_CODES.md`), diupdate
-tiap kali ada `errorCode` baru ditambahkan — supaya konsumen API punya
+tiap kali ada `errorCode` baru ditambahkan - supaya konsumen API punya
 referensi lengkap tanpa harus baca kode:
 
 | error_code                   | HTTP Status | Contoh Kapan Muncul                                                 |
@@ -1170,12 +1170,12 @@ referensi lengkap tanpa harus baca kode:
 
 ### Aturan Wajib
 
-- Semua endpoint baru **wajib** ikut format envelope ini — tidak ada
+- Semua endpoint baru **wajib** ikut format envelope ini - tidak ada
   pengecualian "response custom" per modul
 - Error code baru **wajib** ditambahkan ke `ERROR_CODES.md` di PR yang
   sama
 - Pesan `message` untuk end-user (Bahasa Indonesia, ramah), detail
-  teknis (stack trace, dst) hanya masuk log — tidak pernah ke response
+  teknis (stack trace, dst) hanya masuk log - tidak pernah ke response
 
 ---
 
@@ -1183,7 +1183,7 @@ referensi lengkap tanpa harus baca kode:
 
 Prinsip: **structured logging** (JSON, bukan `console.log` string bebas)
 supaya bisa di-query/filter nanti, dan **setiap request bisa dilacak**
-lewat satu request ID yang konsisten dari masuk sampai keluar —
+lewat satu request ID yang konsisten dari masuk sampai keluar -
 termasuk terhubung ke tabel `audit_logs.request_id` yang sudah ada di
 skema database.
 
@@ -1204,7 +1204,7 @@ export const logger = pino({
 });
 ```
 
-`redact` mencegah data sensitif ikut ter-log meski developer lupa —
+`redact` mencegah data sensitif ikut ter-log meski developer lupa -
 lapisan pengaman tambahan di atas aturan "jangan pernah log password"
 yang sudah disebut di modul auth.
 
@@ -1224,14 +1224,14 @@ export const requestIdMiddleware = createMiddleware(async (c, next) => {
 ```
 
 `requestId` ini yang dipakai sebagai `contributions.request_id` /
-`audit_logs.request_id` saat use case melakukan perubahan data —
+`audit_logs.request_id` saat use case melakukan perubahan data -
 menyambungkan log aplikasi dengan jejak audit di database.
 
 ### Apa yang Di-log
 
 | Level     | Kapan dipakai                                                                                               |
 | --------- | ----------------------------------------------------------------------------------------------------------- |
-| `debug` | Detail teknis untuk development (query yang dijalankan, dst) — mati di production                          |
+| `debug` | Detail teknis untuk development (query yang dijalankan, dst) - mati di production                          |
 | `info`  | Request masuk/keluar (method, path, status, durasi), event bisnis penting (user register, kata dipublikasi) |
 | `warn`  | Kondisi tak normal tapi tidak fatal (rate limit tercapai, percobaan login gagal)                            |
 | `error` | Exception tak tertangani, kegagalan koneksi eksternal (DB, SMTP)                                            |
@@ -1245,12 +1245,12 @@ menyambungkan log aplikasi dengan jejak audit di database.
 
 ### Observability Lanjutan (Upgrade Path, Belum Wajib Sekarang)
 
-- **Error tracking**: Sentry — cukup tambah SDK, otomatis capture
+- **Error tracking**: Sentry - cukup tambah SDK, otomatis capture
   exception dari `error-handler.middleware.ts`
-- **Metrics/tracing**: OpenTelemetry — baru relevan kalau traffic sudah
+- **Metrics/tracing**: OpenTelemetry - baru relevan kalau traffic sudah
   signifikan atau butuh debug performa lintas service
 - Dicatat di sini sebagai pengingat, **tidak perlu diimplementasi di
-  fase awal** — cukup structured logging dulu
+  fase awal** - cukup structured logging dulu
 
 ---
 
@@ -1265,7 +1265,7 @@ palsu) dan brute force di endpoint sensitif.
 | Kategori endpoint           | Contoh                                                             | Limit                                   |
 | --------------------------- | ------------------------------------------------------------------ | --------------------------------------- |
 | Publik, baca saja           | `GET /api/v1/words`, `GET /api/v1/words/:id`                   | 100 request/menit per IP                |
-| Publik, tulis (belum login) | `POST /api/v1/auth/register`                                     | 5 request/jam per IP                    |
+| Publik, tulis (belum login) | `POST /api/v1/auth/register`, `POST /api/v1/contributions/words` (submit kata anonim) | 5 request/jam per IP                    |
 | Auth sensitif               | `POST /api/v1/auth/login`, `POST /api/v1/auth/forgot-password` | 5 percobaan/15 menit per email+IP       |
 | Sudah login, tulis data     | `POST /api/v1/words` (submit kata), `POST /api/v1/words/:id/pronunciations` / `/:id/images`, `POST /api/v1/meanings/:id/examples` (kontribusi media) | 30 request/menit per user_id            |
 | Admin                       | Endpoint role admin/editor (termasuk antrean review `GET/POST /api/v1/admin/contributions/...`) | Longgar (500/menit) atau tidak dibatasi |
@@ -1311,7 +1311,7 @@ authRoutes.use(
   rateLimit({
     points: 5,
     duration: 900,
-    // ponytail: key IP saja — gabung dengan email (parse body) kalau perlu ketat
+    // ponytail: key IP saja - gabung dengan email (parse body) kalau perlu ketat
     keyFn: (c) => `login:${c.req.header('x-forwarded-for')}`,
   }),
 );
@@ -1325,7 +1325,7 @@ authRoutes.openapi(loginRoute, loginHandler);   // Section 9: bukan app.post
   ada insiden
 - Response 429 **wajib** sertakan header `Retry-After`
 - Di belakang reverse proxy/load balancer, PASTIKAN `x-forwarded-for`
-  diteruskan (proxy_set_header / set_real_ip_from di nginx, dst) —
+  diteruskan (proxy_set_header / set_real_ip_from di nginx, dst) -
   tanpa itu semua klien berbagi satu bucket rate limit (`unknown`)
   dan kolektif saling mengunci
 - Limit untuk role admin/editor boleh lebih longgar, tapi tidak boleh
@@ -1423,7 +1423,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm drizzle-kit migrate
         env:
-          # Neon: direct (non-pooler) URL — lihat Section 17
+          # Neon: direct (non-pooler) URL - lihat Section 17
           DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
 
   deploy:
@@ -1460,7 +1460,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: pnpm drizzle-kit migrate
         env:
-          # Neon: direct (non-pooler) URL — lihat Section 17
+          # Neon: direct (non-pooler) URL - lihat Section 17
           DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
 
   deploy:
@@ -1483,10 +1483,10 @@ Tag rilis (v*)     → backup DB → manual approval → migrate → deploy prod
 ### Aturan Wajib
 
 - **Production hanya di-deploy lewat git tag**, bukan otomatis dari
-  `main` — supaya rilis production selalu proses sadar/sengaja
+  `main` - supaya rilis production selalu proses sadar/sengaja
 - **`environment: production`** di GitHub wajib diset dengan *required
-  reviewers* — tidak ada migrate/deploy production tanpa approval manusia
-- Job `migrate` selalu `needs` sebelum job `deploy` di semua workflow —
+  reviewers* - tidak ada migrate/deploy production tanpa approval manusia
+- Job `migrate` selalu `needs` sebelum job `deploy` di semua workflow -
   aplikasi tidak pernah start dengan skema database yang belum sinkron
 - Backup **wajib** jalan sebelum migrate di production (tidak perlu di
   staging)
@@ -1495,7 +1495,7 @@ Tag rilis (v*)     → backup DB → manual approval → migrate → deploy prod
 
 ## 17. Strategi Multi-Environment
 
-Prinsip: **minimal 3 environment terpisah total** — infrastruktur,
+Prinsip: **minimal 3 environment terpisah total** - infrastruktur,
 database, dan kredensial masing-masing tidak saling menyentuh. Tidak
 ada environment yang berbagi database dengan environment lain, bahkan
 untuk "sekadar coba cepat".
@@ -1505,12 +1505,12 @@ untuk "sekadar coba cepat".
 | Environment                              | Tujuan                                                                                           | Siapa yang akses               | Database                                                                             |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------ |
 | **Local (Development)**            | Coding sehari-hari di komputer masing-masing developer                                           | Developer individu             | PostgreSQL lokal (Docker Compose) atau branch Neon pribadi                           |
-| **Development (opsional, shared)** | Integrasi awal antar developer sebelum masuk staging — bisa dilewati kalau tim masih kecil/solo | Semua developer, internal only | DB`dev`, boleh sering direset                                                      |
-| **Staging**                        | Simulasi production — tempat QA, demo ke stakeholder, test sebelum rilis                        | Tim internal + tester          | DB`staging`, data mirip production (anonim/sample), **bukan** data asli user |
-| **Production**                     | Yang dipakai pengguna sungguhan                                                                  | Publik                         | DB`production`, data asli — paling dilindungi                                     |
+| **Development (opsional, shared)** | Integrasi awal antar developer sebelum masuk staging - bisa dilewati kalau tim masih kecil/solo | Semua developer, internal only | DB`dev`, boleh sering direset                                                      |
+| **Staging**                        | Simulasi production - tempat QA, demo ke stakeholder, test sebelum rilis                        | Tim internal + tester          | DB`staging`, data mirip production (anonim/sample), **bukan** data asli user |
+| **Production**                     | Yang dipakai pengguna sungguhan                                                                  | Publik                         | DB`production`, data asli - paling dilindungi                                     |
 
 > Untuk skala tim saat ini (solo/kecil), **Development tier boleh
-> dilewati** — cukup Local → Staging → Production. Tambahkan tier
+> dilewati** - cukup Local → Staging → Production. Tambahkan tier
 > Development kalau nanti tim berkembang dan butuh tempat integrasi
 > sebelum staging.
 
@@ -1532,7 +1532,7 @@ feature/xxx  ──PR──▶  develop (opsional)  ──PR──▶  staging  
 
 ### Perbedaan Konfigurasi per Environment
 
-Ini poin yang paling sering terlewat — bukan cuma `DATABASE_URL` yang
+Ini poin yang paling sering terlewat - bukan cuma `DATABASE_URL` yang
 beda, tapi juga:
 
 | Config                          | Local                                         | Staging                              | Production                                                 |
@@ -1550,7 +1550,7 @@ beda, tapi juga:
 ### Database: Docker di Lokal, Neon di Staging/Production
 
 Bisa, dan memang dirancang begitu (Section 8): **satu driver `pg`, satu
-`DATABASE_URL`** — antar environment hanya nilainya yang berubah, kode
+`DATABASE_URL`** - antar environment hanya nilainya yang berubah, kode
 dan migration SQL-nya identik.
 
 | Environment          | Database                                            | Sumber connection string     |
@@ -1562,101 +1562,101 @@ dan migration SQL-nya identik.
 
 Aturan Neon (wajib dipatuhi semua prompt/deploy):
 
-- **App runtime** pakai connection string **pooled** — host-nya
+- **App runtime** pakai connection string **pooled** - host-nya
   mengandung `-pooler` (PgBouncer Neon yang mengelola koneksi)
 - **Migration** (`pnpm drizzle-kit migrate` di job CI/CD) pakai
-  connection string **direct** (non-pooler) — DDL lewat transaction
+  connection string **direct** (non-pooler) - DDL lewat transaction
   pooling bisa gagal. Jadi per environment Neon ada DUA secret:
   direct URL untuk job `migrate`, pooled URL untuk runtime app
 - Selalu sertakan `?sslmode=require` di kedua URL
-- **Tidak perlu** ganti driver ke `drizzle-orm/neon-http` — itu hanya
+- **Tidak perlu** ganti driver ke `drizzle-orm/neon-http` - itu hanya
   untuk edge/serverless; runtime Node.js biasa cukup `pg` via TCP
   (Section 8), jadi kode tetap portable kalau suatu saat pindah dari
   Neon ke RDS/self-hosted
 - Kalau ada instalasi PostgreSQL lain yang sudah memakai port 5432 di
   mesin lokal (mis. Homebrew), matikan dulu sebelum `docker compose up`
-  — atau ubah mapping port di `docker-compose.yml` + `DATABASE_URL`
+  - atau ubah mapping port di `docker-compose.yml` + `DATABASE_URL`
 
 ### Deploy ke Cloudflare Workers (Production)
 
-Lanjutan tabel di atas — production bisa memilih Workers sebagai runtime
+Lanjutan tabel di atas - production bisa memilih Workers sebagai runtime
 (lihat "Dua Runtime" di Section 8). Urutan setup PERTAMA kali:
 
 ```text
 1. npx wrangler login
 2. Secrets (jangan pernah di wrangler.toml):
      npx wrangler secret put DATABASE_URL       # Neon POOLED URL ?sslmode=require
-                                                # (driver Neon serverless WS — lihat Section 8)
+                                                # (driver Neon serverless WS - lihat Section 8)
      npx wrangler secret put JWT_PRIVATE_KEY    # PEM (key pair khusus environment)
      npx wrangler secret put JWT_PUBLIC_KEY
      npx wrangler secret put RESEND_API_KEY     # email HTTP (opsional)
      npx wrangler secret put IMAGEKIT_PRIVATE_KEY # opsional
 3. Migration tetap dari CI Node (GitHub Actions):
-     pnpm drizzle-kit migrate  # Neon DIRECT URL (Section 16) — bukan via Workers
+     pnpm drizzle-kit migrate  # Neon DIRECT URL (Section 16) - bukan via Workers
 4. pnpm deploy   # = wrangler deploy (setelah CI hijau + backup DB, Section 16)
 ```
 
 Aturan wajib tambahan (setara aturan Neon di atas):
 
 - `[vars]` di `wrangler.toml` HANYA untuk config non-secret; semua
-  kredensial lewat `wrangler secret put` — konsisten Section 12
+  kredensial lewat `wrangler secret put` - konsisten Section 12
   (`.env`/secrets tidak pernah masuk git)
 - Simpan `wrangler.toml` + `worker.ts` di repo
 - Log production = Workers Logs (logger JSON via `console` otomatis
   terekap; `wrangler tail --format json` untuk streaming + diagnosis)
 - Smoke test pasca-deploy: `cd http && bruno run --env <env> auth/
   language/ word/ contribution/ search-miss/ category/ audit/`
-  (environment Bruno lokal, tidak di-commit — Section 20)
+  (environment Bruno lokal, tidak di-commit - Section 20)
 
 ### Kaitan dengan Section Sebelumnya
 
 - **Section 12 (Env & Secrets)**: `envSchema` sudah mendukung
   `NODE_ENV: z.enum(['development', 'test', 'staging', 'production'])`
-  — jadi validasi env sudah siap multi-environment sejak awal
+  - jadi validasi env sudah siap multi-environment sejak awal
 - **Section 16 (CI/CD)**: workflow `deploy-staging.yml` dan
   `deploy-production.yml` sudah dipisah total, masing-masing pakai
-  `secrets.STAGING_DATABASE_URL` vs `secrets.PRODUCTION_DATABASE_URL` —
+  `secrets.STAGING_DATABASE_URL` vs `secrets.PRODUCTION_DATABASE_URL` -
   tinggal tambah `deploy-dev.yml` dengan pola sama kalau tier Development
   dipakai
 - **Section 7 (Migration)**: migration dijalankan terpisah per
-  environment (`migrate` job masing-masing workflow) — skema staging dan
+  environment (`migrate` job masing-masing workflow) - skema staging dan
   production bisa saja beda sementara di masa transisi rilis, tapi harus
   konvergen
 
 ### Aturan Wajib
 
 - **Tidak ada environment yang memakai `DATABASE_URL` environment lain**
-  — bahkan untuk debug cepat. Kalau perlu data mirip production di
+  - bahkan untuk debug cepat. Kalau perlu data mirip production di
   staging, lakukan **anonymized data seeding**, bukan copy langsung dari
   production
-- **JWT key pair wajib berbeda** per environment — token yang di-generate
+- **JWT key pair wajib berbeda** per environment - token yang di-generate
   di staging tidak boleh valid di production
 - **Kredensial pihak ketiga** (SMTP, dsb) staging **wajib** pakai mode
-  sandbox/test provider — jangan sampai testing di staging mengirim email
+  sandbox/test provider - jangan sampai testing di staging mengirim email
   asli ke user
 - Setiap environment baru yang ditambahkan (misal tier Development)
   **wajib** didaftarkan di tabel Section 12 (env source) dan tabel
-  konfigurasi di atas — jangan biarkan environment baru berjalan dengan
+  konfigurasi di atas - jangan biarkan environment baru berjalan dengan
   konfigurasi "asal jalan"
 
 ---
 
 ## 18. Referensi Prompt Terkait
 
-- `docs/admin/admin-tambah-kata.md` — UI admin (frontend)
-- `01-api-tambah-kata.md` — prompt modul word (sudah diselaraskan)
-- `00-api-auth.md` — prompt modul auth (sudah diimplementasikan)
-- `02-api-audit-logs.md` — prompt modul audit (auditor: admin & root)
-- `03-api-kontribusi-verifikasi.md` — prompt modul contribution (antrean
+- `docs/admin/admin-tambah-kata.md` - UI admin (frontend)
+- `01-api-tambah-kata.md` - prompt modul word (sudah diselaraskan)
+- `00-api-auth.md` - prompt modul auth (sudah diimplementasikan)
+- `02-api-audit-logs.md` - prompt modul audit (auditor: admin & root)
+- `03-api-kontribusi-verifikasi.md` - prompt modul contribution (antrean
   review approve/reject/correct + kontribusi media: gambar, pronounce,
   contoh kalimat)
-- `docs/dbdiagram.dbml` — skema database lengkap
-- `ERROR_CODES.md` — katalog error code (buat terpisah, lihat Section 13)
-- repo `http/` — koleksi Bruno untuk uji fungsional semua endpoint (Section 20)
+- `docs/dbdiagram.dbml` - skema database lengkap
+- `ERROR_CODES.md` - katalog error code (buat terpisah, lihat Section 13)
+- repo `http/` - koleksi Bruno untuk uji fungsional semua endpoint (Section 20)
 
 ---
 
-## 19. Strategi ID — ULID
+## 19. Strategi ID - ULID
 
 Prinsip: **semua primary key dan foreign key memakai ULID** (Universally
 Unique Lexicographically Sortable Identifier), bukan auto-increment
@@ -1667,10 +1667,10 @@ tidak bergantung pada sequence database.
 
 | Aspek        | Auto-Increment (`serial`/`bigint`)                     | ULID (`varchar(26)`)                                                   |
 | ------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Distribusi   | Bergantung pada satu DB sequence — sulit shard/partisi    | Generate di mana saja, tidak butuh sequence                              |
+| Distribusi   | Bergantung pada satu DB sequence - sulit shard/partisi    | Generate di mana saja, tidak butuh sequence                              |
 | Sortability  | Urut tapi tidak terkait waktu                              | Lexicographically sortable berdasarkan waktu (karena timestamp embedded) |
-| Keamanan     | ID bisa di-detect (1, 2, 3...) — rawan enumeration        | 26 char random — tidak bisa di-guess                                    |
-| Portabilitas | Banyak DB punya sequence, tapi mekanisme beda-beda         | Tipe data`varchar` — universal di semua DB                            |
+| Keamanan     | ID bisa di-detect (1, 2, 3...) - rawan enumeration        | 26 char random - tidak bisa di-guess                                    |
+| Portabilitas | Banyak DB punya sequence, tapi mekanisme beda-beda         | Tipe data`varchar` - universal di semua DB                            |
 | Multi-client | Butuh locking/transaction untuk generate ID sebelum insert | Bisa di-generate sebelum insert, tanpa conflict                          |
 
 ### Library: `ulid`
@@ -1688,7 +1688,7 @@ export function generateId(): string {
 }
 ```
 
-ULID format: `01HXYZABCDEF1234567890` — 26 karakter, kombinasi
+ULID format: `01HXYZABCDEF1234567890` - 26 karakter, kombinasi
 48-bit timestamp (milisecond) + 80-bit entropy. Lexicographically
 sortable: ID yang di-generate lebih awal selalu lexicographically
 lebih kecil dari yang di-generate belakangan.
@@ -1736,7 +1736,7 @@ export const words = pgTable('words', {
 ```
 
 `$defaultFn(() => generateId())` membuat Drizzle otomatis generate
-ULID saat insert tanpa perlu diisi manual — use case/repository tidak
+ULID saat insert tanpa perlu diisi manual - use case/repository tidak
 perlu memikirkan ID generation.
 
 ### Dampak ke DBML (dbdiagram.dbml)
@@ -1792,7 +1792,7 @@ ID yang dikembalikan di response selalu dalam format string:
 }
 ```
 
-**Tidak ada** numerik ID di response — konsisten dengan tipe
+**Tidak ada** numerik ID di response - konsisten dengan tipe
 `varchar(26)` di database.
 
 ### Dampak ke Validation (Zod)
@@ -1811,17 +1811,17 @@ const paramsSchema = z.object({
 
 ### Aturan Wajib
 
-- **Semua tabel baru wajib pakai `varchar(26)` ULID sebagai PK** —
+- **Semua tabel baru wajib pakai `varchar(26)` ULID sebagai PK** -
   tidak ada pengecualian untuk tabel baru
 - **Migrasi dari auto-increment ke ULID** untuk tabel yang sudah ada
   dilakukan bertahap: tambah kolom `ulid` → migrate data → swap PK →
   drop kolom lama (dalam PR terpisah)
-- **Jangan pernah expose integer ID** di response API — selalu pakai
+- **Jangan pernah expose integer ID** di response API - selalu pakai
   ULID string
 - **`$defaultFn(() => generateId())`** di Drizzle schema adalah satu-
-  satunya tempat ID di-generate — repository/use case tidak perlu
+  satunya tempat ID di-generate - repository/use case tidak perlu
   generate ID manual
-- **Tidak ada sequence database** yang dipakai untuk ID — jika ada
+- **Tidak ada sequence database** yang dipakai untuk ID - jika ada
   tabel yang masih pakai `serial`/`bigint`, itu adalah teknikal debt
   yang harus segera di-migrate
 
@@ -1830,17 +1830,17 @@ const paramsSchema = z.object({
 ## 20. Koleksi HTTP Request (Bruno)
 
 Prinsip: **setiap endpoint harus bisa diuji fungsionalnya dari koleksi
-HTTP yang tersimpan di git** — bukan cuma dari kode. Koleksi Bruno hidup
+HTTP yang tersimpan di git** - bukan cuma dari kode. Koleksi Bruno hidup
 di repo `http/` (submodule `sambasku-http`), berdampingan dengan
 `api/`, dan **wajib di-sync setiap kali endpoint berubah**.
 
 ### Mengapa Bruno, bukan Postman/Insomnia
 
-- Koleksi berupa **plain file `.bru` per request** — diff-friendly,
+- Koleksi berupa **plain file `.bru` per request** - diff-friendly,
   reviewable di PR, tanpa export/import JSON raksasa
 - Bisa dijalankan **CLI** (`bruno run`) untuk CI maupun **GUI** desktop
   untuk eksplorasi manual
-- Tidak butuh akun/cloud — semua di git
+- Tidak butuh akun/cloud - semua di git
 
 ### Struktur Koleksi
 
@@ -1869,11 +1869,11 @@ Modul baru (word, category, dst) membuat folder sendiri:
   register → login → token-dependent)
 - Request berantai memakai collection variable: `Login` menyimpan
   `access_token` (via `vars:post_response`) dan `refresh_token`
-  (via `script:post_response` membaca `Set-Cookie`) — request berikutnya
+  (via `script:post_response` membaca `Set-Cookie`) - request berikutnya
   tinggal `{{access_token}}` / header `Cookie: refresh_token=…`
 - **Setiap request wajib punya blok `tests`** minimal: status code +
   bentuk envelope (`res.body.success`, field kunci di `data`)
-- Path + body HARUS sama persis dengan definisi `createRoute()` di kode —
+- Path + body HARUS sama persis dengan definisi `createRoute()` di kode -
   inilah "kontrak" fungsionalnya
 
 ### Aturan Sinkronisasi (WAJIB, satu PR yang sama dengan perubahan API)
@@ -1885,7 +1885,7 @@ Modul baru (word, category, dst) membuat folder sendiri:
 | Endpoint dihapus / path berubah            | Hapus / rename file`.bru`                   |
 | Error code baru yang memengaruhi assertion | Update`tests`                               |
 
-Environment selain `local` TIDAK di-commit — staging/production
+Environment selain `local` TIDAK di-commit - staging/production
 dikelola lokal lewat fitur environment Bruno (kredensial sungguhan
 tidak pernah masuk git, konsisten Section 12).
 
@@ -1900,10 +1900,10 @@ cd http && bruno run --env local auth/
 
 ---
 
-## 21. Audit Trail — Setiap Mutasi Data Tercatat
+## 21. Audit Trail - Setiap Mutasi Data Tercatat
 
 Prinsip: **setiap operasi yang mengubah data domain (create / update /
-delete) WAJIB menghasilkan satu baris `audit_logs`** — siapa melakukan,
+delete) WAJIB menghasilkan satu baris `audit_logs`** - siapa melakukan,
 kapan, apa yang berubah, dari request mana. Auditor internal membacanya
 lewat modul audit yang hanya bisa diakses role **admin** dan **root**.
 
@@ -1918,33 +1918,33 @@ lewat modul audit yang hanya bisa diakses role **admin** dan **root**.
 | `entity_id`   | ULID entitas yang diubah                                                                      |
 | `old_data`    | snapshot sebelum perubahan (JSON,`null` untuk create)                                       |
 | `new_data`    | snapshot sesudah perubahan (JSON)                                                             |
-| `request_id`  | dari`requestIdMiddleware` (Section 14) — menyambung log aplikasi ↔ audit DB               |
+| `request_id`  | dari`requestIdMiddleware` (Section 14) - menyambung log aplikasi ↔ audit DB               |
 | `created_at`  | timestamp                                                                                     |
 
 ### Konvensi Penulisan (WAJIB)
 
-- **Yang menulis: use case**, lewat `AuditLogRepository` — interface
+- **Yang menulis: use case**, lewat `AuditLogRepository` - interface
   diekspor `modules/audit/domain/repositories/audit-log.repository.ts`
   dan di-inject ke use case modul lain (pola komunikasi antar modul
   Section 4: lewat interface yang di-export, bukan import internal).
-- **`request_id` wajib diisi** — controller mengambilnya dari context
+- **`request_id` wajib diisi** - controller mengambilnya dari context
   (`c.get('requestId')`) dan meneruskannya ke use case.
 - **`old_data`/`new_data` TIDAK BOLEH berisi**: password (plain/hash),
-  token, atau kredensial apa pun — cukup field aman (mis. reset password
+  token, atau kredensial apa pun - cukup field aman (mis. reset password
   → `new_data: { changed: true }`).
 - **`record()` bersifat best-effort**: implementasi tidak boleh
-  melempar error ke caller — kegagalan insert hanya di-log `error`
+  melempar error ke caller - kegagalan insert hanya di-log `error`
   (request user tidak ikut gagal). *Upgrade path*: kalau compliance
   mewajibkan atomic, pindahkan insert ke transaksi yang sama dengan
   mutasi utamanya.
 - `created_by`/`updated_by` di tiap tabel (lihat dbdiagram) tetap
-  dipertahankan — itu jejak cepat per baris; `audit_logs` adalah jejak
+  dipertahankan - itu jejak cepat per baris; `audit_logs` adalah jejak
   lengkap peristiwa (termasuk `old_data`) + penyambung ke log aplikasi
   via `request_id`.
 
 ### Sisi Pembaca (Auditor)
 
-Endpoint `GET /api/v1/admin/audit-logs` (modul `audit`) — hanya role
+Endpoint `GET /api/v1/admin/audit-logs` (modul `audit`) - hanya role
 `admin` dan `root` (`authenticate` + `authorizeRole('admin','root')`),
 lengkap dengan filter + pagination. Detail kontraknya ada di
 `02-api-audit-logs.md`.
@@ -1955,21 +1955,21 @@ lengkap dengan filter + pagination. Detail kontraknya ada di
 
 Prinsip: **setiap kontribusi WAJIB melewati verifikasi admin sebelum
 tayang**. Publikasi adalah gerbang (`status`), kepercayaan adalah jejak
-(`is_verified` / `is_corrected`) — verifikator bisa menyetujui, menolak
+(`is_verified` / `is_corrected`) - verifikator bisa menyetujui, menolak
 dengan alasan, atau **mengoreksi langsung** isi kontribusi saat review.
 
 > Model ini **menggantikan** keputusan awal "publish by default" (kontribusi
 > langsung tayang). Pembalikan ini sadar dan disengaja: UI admin sejak awal
 > memang mengharapkan antrean review, dan kualitas isi kamus diutamakan
 > daripada kecepatan tayang. Berlaku untuk SEMUA konten yang bisa
-> dikontribusikan user — kata, gambar, pronounce, contoh kalimat (sample),
+> dikontribusikan user - kata, gambar, pronounce, contoh kalimat (sample),
 > dan jenis konten lain yang menyusul.
 
 ### Kontrak
 
 | Kolom (tabel konten: `words`, `pronunciations`, `word_images`, `examples`) | Makna |
 | --- | --- |
-| `status` | `'draft' \| 'pending_review' \| 'published' \| 'rejected'` — draft = masih dikerjakan penulis; **pending_review = menunggu keputusan verifikator, TIDAK tayang**; published = tayang publik; rejected = ditolak (terminal — kirim ulang sebagai kontribusi baru). `pending_review`/`rejected` hanya di-set sistem; request user tetap `draft` \| `published` |
+| `status` | `'draft' \| 'pending_review' \| 'published' \| 'rejected'` - draft = masih dikerjakan penulis; **pending_review = menunggu keputusan verifikator, TIDAK tayang**; published = tayang publik; rejected = ditolak (terminal - kirim ulang sebagai kontribusi baru). `pending_review`/`rejected` hanya di-set sistem; request user tetap `draft` \| `published` |
 | `is_verified` | `false` = belum diverifikasi; `true` = sudah diverifikasi tim verifikator |
 | `verified_by` / `verified_at` | siapa & kapan verifikasi dilakukan (hanya di `words`; identitas reviewer konten anak ada di `contribution_reviews`) |
 | `is_corrected` | `true` = isi konten pernah **dikoreksi verifikator** saat review; snapshot sebelum koreksi tersimpan di audit `old_data` (action `correct`) |
@@ -1982,7 +1982,7 @@ dengan alasan, atau **mengoreksi langsung** isi kontribusi saat review.
 | editor | langsung `published` + `is_verified: true` (self-verified) | ❌ | ❌ |
 | contributor | **`pending_review` → masuk antrean** (tidak tayang) | ❌ | ❌ |
 
-Hanya role `contributor` yang masuk antrean — reviewer sudah berwenang
+Hanya role `contributor` yang masuk antrean - reviewer sudah berwenang
 menyetujui kontribusi siapa pun, mengantrekan karyanya sendiri tidak
 menambah integritas.
 
@@ -1991,15 +1991,15 @@ menambah integritas.
 - Contributor submit non-draft → entity `pending_review` + baris
   `contributions` dengan `status: 'pending'` → muncul di antrean review.
   Endpoint publik **tidak menampilkannya** (list/search kata filter
-  `status = 'published'`; anak kata — pronounce/gambar/contoh — juga
+  `status = 'published'`; anak kata - pronounce/gambar/contoh - juga
   hanya tampil bila `status = 'published'`)
 - Submit oleh admin/editor/root/reviewer → langsung `published` +
-  `is_verified: true` (mereka bagian dari tim verifikator — self-verified)
+  `is_verified: true` (mereka bagian dari tim verifikator - self-verified)
 - `draft` tetap draft untuk semua role (tidak tayang, tidak masuk antrean)
 - Keputusan verifikator (role **admin, root, reviewer**) lewat antrean
   `GET /api/v1/admin/contributions`:
   - **approve** → entity `published` + `is_verified: true`
-  - **reject** → entity `rejected` — `comment` (alasan) WAJIB
+  - **reject** → entity `rejected` - `comment` (alasan) WAJIB
   - **correct** → verifikator mengirim isi yang sudah dikoreksi →
     entity diperbarui, `is_corrected: true`, lalu published + verified
   - Setiap keputusan menulis baris `contribution_reviews`
@@ -2009,13 +2009,13 @@ menambah integritas.
   tersedia** untuk memberi/mencabut kepercayaan PASCA-publikasi
   (kontrak di `01-api-tambah-kata.md`)
 - Kontribusi konten anak pada kata yang sudah tayang (gambar, pronounce,
-  contoh kalimat) punya endpoint sendiri dan mengikuti alur yang sama —
+  contoh kalimat) punya endpoint sendiri dan mengikuti alur yang sama -
   kontrak lengkap di `03-api-kontribusi-verifikasi.md`
 - Audit trail (Section 21) mencatat aksi `approve`/`reject`/`correct`
   (correct membawa `old_data` snapshot pra-koreksi) dan `is_verified` /
   `is_corrected` di `new_data`
 
-*Rationale: dua dimensi tetap terpisah — `status` menjawab "boleh tayang?",
+*Rationale: dua dimensi tetap terpisah - `status` menjawab "boleh tayang?",
 `is_verified` menjawab "dipercaya?", `is_corrected` menjawab "pernah diubah
 verifikator?". Gerbang publikasi di tangan verifikator; penolakan selalu
 bersalah; koreksi tidak menghapus jejak.*

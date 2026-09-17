@@ -1,11 +1,11 @@
-# Admin UI — Tambah Kata Baru
+# Admin UI - Tambah Kata Baru
 
-Form admin untuk fitur "Tambah Kata" — mengonsumsi API yang dispesifikasikan
+Form admin untuk fitur "Tambah Kata" - mengonsumsi API yang dispesifikasikan
 di `docs/api/01-api-tambah-kata.md`, dengan konvensi backend di
 `docs/api/api-base-stack.md` (envelope response, error code, auth).
 Koleksi uji fungsional endpoint-nya ada di repo `http/`.
 Alur verifikasi kontribusi (antrean review approve/reject/correct)
-didefinisikan di `docs/api/03-api-kontribusi-verifikasi.md` — halaman
+didefinisikan di `docs/api/03-api-kontribusi-verifikasi.md` - halaman
 UI antreannya menyusul di prompt admin terpisah.
 
 ---
@@ -31,19 +31,19 @@ STRUKTUR FORM (bagi jadi beberapa section/step):
 
    - Kata Sambas / Lemma (text input, wajib)
    - Bahasa (dropdown, default: "Sambas", disabled kalau cuma 1 bahasa)
-   - Dialek (dropdown/searchable, opsional — misal "Umum", "Sambas Kota",
+   - Dialek (dropdown/searchable, opsional - misal "Umum", "Sambas Kota",
      "Sambas Pesisir")
    - Catatan tambahan (textarea, opsional)
    - Jenis entri (dropdown: Kata / Idiom / Peribahasa / Ungkapan,
-     default Kata — menentukan label/badge & mengaktifkan relasi
+     default Kata - menentukan label/badge & mengaktifkan relasi
      "kata pembentuk" untuk entri frasa)
 2. MAKNA / ARTI (bisa lebih dari satu, tombol "+ Tambah Makna")
    Untuk setiap makna:
 
-   - Kelas kata (dropdown searchable: Nomina, Verba, Adjektiva, dst —
+   - Kelas kata (dropdown searchable: Nomina, Verba, Adjektiva, dst -
      tampilkan hierarki kalau ada, misal "Verba > Verba Transitif")
    - Definisi konseptual (textarea, wajib)
-   - Terjemahan ke Indonesia (text input, wajib) — ini yang tampil
+   - Terjemahan ke Indonesia (text input, wajib) - ini yang tampil
      sebagai arti utama
    - Tipe terjemahan (dropdown: Langsung/Deskriptif/Idiomatik, default
      "Langsung")
@@ -63,7 +63,7 @@ STRUKTUR FORM (bagi jadi beberapa section/step):
      Sinonim / Antonim / Kata pembentuk (khusus entri frasa:
      idiom/peribahasa/ungkapan) / Turunan dari (derived_from)
    - Validasi frontend: "Kata pembentuk" disembunyikan/disabled
-     ketika jenis entri = Kata (backend juga menolak — 400)
+     ketika jenis entri = Kata (backend juga menolak - 400)
 6. BENTUK TURUNAN (opsional, collapsible section)
 
    - Daftar bentuk surface milik entri ini (mis. "memakan" milik
@@ -80,7 +80,7 @@ AKSI FORM:
 
 - Tombol "Simpan sebagai Draft" → status 'draft'
 - Tombol "Simpan & Publikasikan" → status 'published'
-  (PERHATIAN: hasil AKHIR tergantung role — lihat alur status di
+  (PERHATIAN: hasil AKHIR tergantung role - lihat alur status di
   INTEGRASI BACKEND; untuk contributor tombol ini menghasilkan
   'pending_review', tampilkan itu di toast konfirmasinya)
 - Validasi: field wajib ditandai, tampilkan error inline, jangan biarkan
@@ -103,13 +103,13 @@ GAYA VISUAL:
   seperti satu form panjang yang membingungkan
 - Responsive, prioritaskan desktop tapi tetap bisa dipakai di tablet
 
-INTEGRASI BACKEND (WAJIB — kontrak di 01-api-tambah-kata.md):
+INTEGRASI BACKEND (WAJIB - kontrak di 01-api-tambah-kata.md):
 
 1. AUTENTIKASI (00-api-auth.md)
    - Halaman untuk role: admin, editor, contributor, root, reviewer
    - access_token disimpan di memory (BUKAN localStorage), dikirim sebagai
      header Authorization: Bearer <token>
-   - refresh_token otomatis lewat httpOnly cookie — 401 TOKEN_EXPIRED →
+   - refresh_token otomatis lewat httpOnly cookie - 401 TOKEN_EXPIRED →
      panggil POST /api/v1/auth/refresh → retry request; gagal → redirect
      ke halaman login
 
@@ -118,25 +118,25 @@ INTEGRASI BACKEND (WAJIB — kontrak di 01-api-tambah-kata.md):
    Body: language_id, dialect_id?, lemma, notes?, meanings[] (word_class_id,
    definition, order_index, translations[], examples[]), category_ids[],
    synonym_word_ids[], pronunciation?, status
-   — semua *_id adalah ULID string pilihan dari dropdown, BUKAN input bebas
+   - semua *_id adalah ULID string pilihan dari dropdown, BUKAN input bebas
 
-3. ALUR STATUS (words.status — Section 22 approval gate)
+3. ALUR STATUS (words.status - Section 22 approval gate)
    - 'draft' → tombol Simpan Draft (tidak tayang, tidak masuk antrean)
    - 'published' + role admin/editor/root/reviewer → langsung tayang,
      is_verified true (self-verified)
    - 'published' + role contributor → backend simpan 'pending_review'
-     (masuk antrean review — TIDAK tayang sampai disetujui verifikator)
-     — toast harus jujur menyebut status akhir dari response (bukan
+     (masuk antrean review - TIDAK tayang sampai disetujui verifikator)
+     - toast harus jujur menyebut status akhir dari response (bukan
      asumsi), karena data.status adalah sumber kebenaran
    - Keputusan antrean (approve/reject dengan alasan/correct dengan
-     koreksi verifikator) dikonsumsi halaman antrean review terpisah —
+     koreksi verifikator) dikonsumsi halaman antrean review terpisah -
      kontrak API-nya di 03-api-kontribusi-verifikasi.md
 
 4. HANDLE RESPONSE (envelope standar Section 13)
    - Sukses: { success: true, data: { word_id, lemma, word_type, status,
      is_verified, created_at, warnings? } } → toast + redirect
    - data.warnings (duplikat lemma serupa) → tampilkan sebagai warning
-     banner/toast kuning SETELAH sukses — bukan blokir
+     banner/toast kuning SETELAH sukses - bukan blokir
    - 400 VALIDATION_ERROR: details[] = [{ field, message }] → PETAKAN
      field ke error inline di form (field bertitik nested mis.
      "meanings.0.definition" → error di makna ke-0)
@@ -147,7 +147,7 @@ INTEGRASI BACKEND (WAJIB — kontrak di 01-api-tambah-kata.md):
    - 500 INTERNAL_ERROR: pesan generik, jangan tampilkan detail teknis
 
    INFO TAMBAH: halaman detail kata (web) menampilkan bagian
-   "muncul dalam" (appears_in) — peribahasa/idiom yang memakai kata
+   "muncul dalam" (appears_in) - peribahasa/idiom yang memakai kata
    itu sebagai komponen; data berasal dari GET /words/:id field
    appears_in (relasi invers, otomatis).
 

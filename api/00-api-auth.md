@@ -1,7 +1,7 @@
-# API Auth — Register & Login
+# API Auth - Register & Login
 
 Mengikuti `api-base-stack.md`: Clean Architecture feature-based (`modules/auth/`)
-— Section 3 (struktur folder), 9 (`@hono/zod-openapi` + Scalar), 10 (testing),
+- Section 3 (struktur folder), 9 (`@hono/zod-openapi` + Scalar), 10 (testing),
 11 (versioning `/api/v1/`), 13 (envelope & error), 15 (rate limiting).
 
 ---
@@ -14,10 +14,10 @@ Sambas-Indonesia, mengikuti struktur clean architecture feature-based
 yang sudah ditetapkan di api-base-stack.md.
 
 STACK:
-- Hono (Node.js runtime) — route pakai OpenAPIHono dari @hono/zod-openapi (Section 9)
+- Hono (Node.js runtime) - route pakai OpenAPIHono dari @hono/zod-openapi (Section 9)
 - Drizzle ORM + PostgreSQL
 - Zod untuk validasi request/response + generate OpenAPI spec (Section 9)
-- JWT (algoritma RS256) via library `jose` — access token + refresh token
+- JWT (algoritma RS256) via library `jose` - access token + refresh token
 - argon2 untuk hashing password
 - Migration: Drizzle Kit (drizzle-kit generate / migrate)
 
@@ -102,15 +102,15 @@ Setelah schema ditambahkan, WAJIB jalankan:
   pnpm drizzle-kit migrate    → apply ke database
 (lihat Section 7 api-base-stack.md untuk detail alur migration)
 
-CARA DEFINISI ENDPOINT (WAJIB — Section 9 api-base-stack.md):
+CARA DEFINISI ENDPOINT (WAJIB - Section 9 api-base-stack.md):
 - Route file pakai OpenAPIHono, tiap endpoint didefinisikan dengan
-  createRoute() + app.openapi() — BUKAN app.post() biasa
+  createRoute() + app.openapi() - BUKAN app.post() biasa
 - Tiap endpoint isi: tags: ['Auth'], summary, schema Zod untuk request
   body DAN response (sukses + error) di validators/
 - Schema response HARUS bentuk envelope standar (Section 13)
 - Dokumentasi otomatis muncul di GET /docs (Scalar) tanpa langkah tambahan
 
-ENDPOINT (semua di bawah prefix /api/v1 — Section 11):
+ENDPOINT (semua di bawah prefix /api/v1 - Section 11):
 
 1. POST /api/v1/auth/register
    Body: { username, email, password, confirm_password }
@@ -124,37 +124,37 @@ ENDPOINT (semua di bawah prefix /api/v1 — Section 11):
    - Role default: 'contributor'
    - Simpan user via UserRepository
    - Audit trail (Section 21): catat action 'create', entity_type 'user',
-     new_data { username, email, role } — TANPA password/hash,
+     new_data { username, email, role } - TANPA password/hash,
      request_id dari context
    - JANGAN pernah kembalikan password_hash di response
    
-   Response sukses (201) — envelope standar Section 13, tanpa field custom
-   (user_id berupa ULID string — lihat Section 8 api-base-stack.md):
+   Response sukses (201) - envelope standar Section 13, tanpa field custom
+   (user_id berupa ULID string - lihat Section 8 api-base-stack.md):
    { "success": true,
      "data": { "user_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
                "username": "...", "email": "..." } }
 
 2. POST /api/v1/auth/login
    Body: { email, password, client_type? }
-   client_type: 'web' (default) | 'mobile' — pilih kanal refresh token:
+   client_type: 'web' (default) | 'mobile' - pilih kanal refresh token:
 
    Use case: LoginUserUseCase
    - Cari user by email via UserRepository
    - Bandingkan password via PasswordHasherPort.compare()
    - Pesan error generik "Email atau password salah" untuk SEMUA kasus
      gagal (email tidak ada / password salah / user soft-deleted /
-     user dinonaktifkan is_active=false) — cegah user enumeration
+     user dinonaktifkan is_active=false) - cegah user enumeration
    - Jika sukses:
      a. Generate access_token (TokenServicePort, TTL dari env 
-        JWT_ACCESS_TOKEN_TTL — default 900 detik / 15 menit, 
+        JWT_ACCESS_TOKEN_TTL - default 900 detik / 15 menit, 
         payload: { user_id, role })
      b. Generate refresh_token (random string), hash, simpan via 
-        RefreshTokenRepository (TTL dari env JWT_REFRESH_TOKEN_TTL — 
+        RefreshTokenRepository (TTL dari env JWT_REFRESH_TOKEN_TTL - 
         default 30 hari)
      c. WEB (default): refresh token dikirim sebagai httpOnly + secure +
         sameSite=strict cookie lewat Hono (setCookie dari hono/cookie)
      d. MOBILE (client_type='mobile'): refresh token dikirim di response
-        body (data.refresh_token), TANPA Set-Cookie — client menyimpannya
+        body (data.refresh_token), TANPA Set-Cookie - client menyimpannya
         di secure storage perangkat (iOS Keychain / Android Keystore /
         expo-secure-store / flutter_secure_storage). Alasan: HttpOnly dan
         SameSite adalah mekanisme browser yang tidak berlaku di app
@@ -202,16 +202,16 @@ ENDPOINT (semua di bawah prefix /api/v1 — Section 11):
    Body: { token, new_password }
    - ResetPasswordUseCase: validasi token belum expired & belum dipakai
    - Konsumsi token secara ATOMIK dulu (UPDATE ... WHERE is_used = false,
-     cek affected row) — jaminan token hanya bisa dipakai SEKALI,
+     cek affected row) - jaminan token hanya bisa dipakai SEKALI,
      termasuk terhadap request konkuren; yang kalah race ditolak
      RESET_TOKEN_INVALID
-   - Update password_hash user (setelah token terbakar — kalau gagal,
+   - Update password_hash user (setelah token terbakar - kalau gagal,
      user minta link baru, failure mode aman)
-   - Revoke SEMUA refresh token user — logout paksa semua perangkat
+   - Revoke SEMUA refresh token user - logout paksa semua perangkat
      (reset password biasanya berarti akun tercompromi; session lama
      milik pencuri tidak boleh selamat)
    - Audit trail (Section 21): action 'password_change', entity_type
-     'user', new_data { changed: true } — hash password TIDAK PERNAH
+     'user', new_data { changed: true } - hash password TIDAK PERNAH
      masuk audit
 
 MIDDLEWARE (shared/middlewares/, dipakai lintas modul):
@@ -244,18 +244,18 @@ KEAMANAN WAJIB:
 - Jangan pernah log password, bahkan di error log
 - CORS whitelist origin eksplisit, jangan wildcard *
 - Environment variable untuk JWT private/public key (.env, JANGAN 
-  hardcode) — load & validasi via shared/config/env.ts (pakai Zod juga 
+  hardcode) - load & validasi via shared/config/env.ts (pakai Zod juga 
   untuk validasi env)
-- Soft delete user (deleted_at) tidak boleh bisa login lagi — cek di 
+- Soft delete user (deleted_at) tidak boleh bisa login lagi - cek di 
   LoginUserUseCase
 
-FORMAT RESPONSE — ENVELOPE STANDAR (Section 13 api-base-stack.md):
+FORMAT RESPONSE - ENVELOPE STANDAR (Section 13 api-base-stack.md):
 - Sukses: { "success": true, "data": { ... } }
 - Gagal (dipakai error-handler.middleware.ts global via app.onError):
 { "success": false, "error_code": "INVALID_CREDENTIALS",
   "message": "Email atau password salah", "details": null }
 - Use case melempar error class dari shared/errors/app-error.ts
-  (UnauthorizedError, ConflictError, dst) — errorCode spesifik modul auth
+  (UnauthorizedError, ConflictError, dst) - errorCode spesifik modul auth
   (INVALID_CREDENTIALS, TOKEN_EXPIRED, EMAIL_ALREADY_EXISTS,
   USERNAME_ALREADY_EXISTS, RESET_TOKEN_INVALID) wajib didaftarkan di
   ERROR_CODES.md di PR yang sama
@@ -266,7 +266,7 @@ FORMAT RESPONSE — ENVELOPE STANDAR (Section 13 api-base-stack.md):
 ## Catatan Implementasi
 
 - Semua use case di `application/use-cases/` **tidak boleh** import 
-  langsung dari Drizzle atau `jose`/`argon2` — selalu lewat interface 
+  langsung dari Drizzle atau `jose`/`argon2` - selalu lewat interface 
   (`*.repository.ts`, `*.port.ts`). Implementasi konkret ada di 
   `infrastructure/`.
 - `main.ts` (composition root) yang merakit:
@@ -277,20 +277,20 @@ FORMAT RESPONSE — ENVELOPE STANDAR (Section 13 api-base-stack.md):
 - Testing (Section 10): setiap use case wajib punya unit test, setiap
   repository implementasi wajib integration test (database test terpisah),
   setiap endpoint minimal 1 E2E test happy path + 1 skenario gagal
-  (validasi/auth) — semua di `modules/auth/__tests__/`.
+  (validasi/auth) - semua di `modules/auth/__tests__/`.
 - Rujuk **Section 7 (Strategi Migration)** di `api-base-stack.md` setiap
   kali menambah/mengubah tabel `refresh_tokens` atau
   `password_reset_tokens`.
 
 ## Referensi Terkait
 
-- `api-base-stack.md` — definisi stack & struktur folder lengkap
-- `02-api-audit-logs.md` — sisi pembaca audit (auditor: admin & root);
+- `api-base-stack.md` - definisi stack & struktur folder lengkap
+- `02-api-audit-logs.md` - sisi pembaca audit (auditor: admin & root);
   modul auth menulis audit untuk register & reset password
-- repo `http/` — koleksi Bruno endpoint auth sudah tersedia
-  (`http/auth/*.bru`, Section 20) — WAJIB di-update tiap kali endpoint
+- repo `http/` - koleksi Bruno endpoint auth sudah tersedia
+  (`http/auth/*.bru`, Section 20) - WAJIB di-update tiap kali endpoint
   auth berubah
-- `kamus_sambas.dbml` — skema database utama (tabel `users`)
-- `ERROR_CODES.md` — katalog error code (Section 13), wajib diupdate
+- `kamus_sambas.dbml` - skema database utama (tabel `users`)
+- `ERROR_CODES.md` - katalog error code (Section 13), wajib diupdate
   tiap ada errorCode baru
 - Prompt selanjutnya: modul `word` untuk fitur admin tambah kata

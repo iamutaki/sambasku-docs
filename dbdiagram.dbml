@@ -108,11 +108,11 @@ Table words {
 
   notes text
 
-  // word | idiom | peribahasa | ungkapan — jenis entri (bukan topik/kategori)
+  // word | idiom | peribahasa | ungkapan - jenis entri (bukan topik/kategori)
   word_type varchar(30) [not null, default: 'word']
 
-  // Model publikasi (base-stack.md Section 22 — approval gate):
-  // draft | pending_review | published | rejected — kontribusi contributor
+  // Model publikasi (base-stack.md Section 22 - approval gate):
+  // draft | pending_review | published | rejected - kontribusi contributor
   // masuk antrean review (pending_review, TIDAK tayang); pending_review dan
   // rejected hanya di-set sistem, request user tetap draft | published
   status varchar(30) [not null, default: 'draft']
@@ -262,7 +262,7 @@ Table examples {
 
   notes text
 
-  // Approval gate (Section 22) — kontribusi mandiri contributor masuk
+  // Approval gate (Section 22) - kontribusi mandiri contributor masuk
   // antrean; identitas reviewer tercatat di contribution_reviews
   status varchar(30) [not null, default: 'published']
   is_verified boolean [not null, default: false]
@@ -362,7 +362,7 @@ Table pronunciations {
 
   notes text
 
-  // Approval gate (Section 22) — kontribusi mandiri contributor masuk
+  // Approval gate (Section 22) - kontribusi mandiri contributor masuk
   // antrean; identitas reviewer tercatat di contribution_reviews
   status varchar(30) [not null, default: 'published']
   is_verified boolean [not null, default: false]
@@ -384,7 +384,7 @@ Table pronunciations {
 
 
 // ============================================================
-// WORD IMAGES — gambar contoh per kata
+// WORD IMAGES - gambar contoh per kata
 // Referensi file di provider eksternal (ImageKit); provider-agnostic
 // ============================================================
 
@@ -401,7 +401,7 @@ Table word_images {
   alt_text varchar(500)
   is_primary boolean [not null, default: false]
 
-  // Approval gate (Section 22) — kontribusi mandiri contributor masuk
+  // Approval gate (Section 22) - kontribusi mandiri contributor masuk
   // antrean; identitas reviewer tercatat di contribution_reviews
   status varchar(30) [not null, default: 'published']
   is_verified boolean [not null, default: false]
@@ -629,8 +629,8 @@ Table contributions {
 
   action varchar(50) [not null]
 
-  // Status antrean review (Section 22 — approval gate):
-  // pending | approved | rejected | corrected — turunan dari status entity
+  // Status antrean review (Section 22 - approval gate):
+  // pending | approved | rejected | corrected - turunan dari status entity
   // saat insert ('pending_review' → 'pending', selain itu 'approved');
   // baris lama di-backfill 'approved' lewat migration
   status varchar(30) [not null, default: 'pending']
@@ -662,7 +662,7 @@ Table contribution_reviews {
   reviewer_id varchar(26) [ref: > users.id]
 
   // Ditulis saat verifikator mengambil keputusan (bukan saat submit):
-  // approved | rejected | corrected — comment WAJIB untuk rejected
+  // approved | rejected | corrected - comment WAJIB untuk rejected
   status varchar(30) [not null, default: 'pending']
 
   comment text
@@ -679,7 +679,7 @@ Table contribution_reviews {
 
 
 // ============================================================
-// SEARCH MISSES — pencarian kosong jadi peluang kontribusi
+// SEARCH MISSES - pencarian kosong jadi peluang kontribusi
 // (03-api-kontribusi-verifikasi.md). Fulfilment TIDAK disimpan kolom:
 // derived saat dibaca (JOIN words published, lemma = term)
 // ============================================================
@@ -687,7 +687,7 @@ Table contribution_reviews {
 Table search_misses {
   id varchar(26) [pk]
 
-  // kata yang dicari — normalized lower(trim), jadi unik per istilah
+  // kata yang dicari - normalized lower(trim), jadi unik per istilah
   term varchar(255) [not null]
 
   // lemma = Sambas→Indonesia (kata tidak ada); translation = Indonesia→Sambas

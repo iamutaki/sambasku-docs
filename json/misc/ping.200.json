@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "data": {
+    "pong": true,
+    "time": "2026-09-17T14:22:21.458Z",
+    "env": "staging",
+    "runtime": "cloudflare-workers"
+  }
+}

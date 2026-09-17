@@ -1,4 +1,4 @@
-# Sample Response JSON — Kamus Digital Sambas-Indonesia API
+# Sample Response JSON - Kamus Digital Sambas-Indonesia API
 
 Penyimpanan **kanonik** contoh response untuk semua endpoint dan kasus yang
 didukung. Setiap file adalah JSON valid dan siap dipakai: mock frontend,
@@ -10,13 +10,13 @@ fixture test, contract testing, atau referensi manual.
 <endpoint>.<status>[.<varian>].json
 
 create-word.201.json                    → sukses standar (verifikator: published + is_verified true)
-create-word.201.pending-review.json     → sukses, kontributor (pending_review — antrean review)
+create-word.201.pending-review.json     → sukses, kontributor (pending_review - antrean review)
 create-word.400.validation.json         → gagal, varian penyebab
 shared/error-envelope.401.json          → envelope error generik (dipakai semua endpoint)
 ```
 
 Folder per modul: `auth/ language/ word/ contribution/ search-miss/
-category/ audit/ image/` — `shared/` berisi envelope error yang identik
+category/ audit/ image/` - `shared/` berisi envelope error yang identik
 di semua endpoint (401/403/429).
 
 ## Pemetaan endpoint → sample
@@ -24,12 +24,13 @@ di semua endpoint (401/403/429).
 | Endpoint | Sample |
 | --- | --- |
 | `GET /` | `auth/root.200.json` |
+| `GET /api/v1/ping` | `misc/ping.200.json` |
 | route tak dikenal | `auth/not-found.404.json` |
 | `POST /api/v1/auth/register` | `auth/register.201.json`, `.400`, `.409` |
 | `POST /api/v1/auth/login` | `auth/login.200.web.json`, `.200.mobile`, `.401` |
 | `POST /api/v1/auth/refresh` | `auth/refresh.200.web.json`, `.200.mobile`, `.401` |
 | `POST /api/v1/auth/logout` & `/logout-all-devices` | `auth/logout.200.json`, `auth/logout-all-devices.200.json` |
-| `POST /api/v1/auth/forgot-password` | `auth/forgot-password.200.json` (response selalu sama — anti-enumeration) |
+| `POST /api/v1/auth/forgot-password` | `auth/forgot-password.200.json` (response selalu sama - anti-enumeration) |
 | `POST /api/v1/auth/reset-password` | `auth/reset-password.200.json`, `.401` |
 | `GET /api/v1/languages` | `language/list-languages.200.json` |
 | `GET /api/v1/dialects?language_id=` | `language/list-dialects.200.json`, `.400` |
@@ -47,6 +48,7 @@ di semua endpoint (401/403/429).
 | `POST /api/v1/admin/contributions/:id/approve` | `contribution/approve-contribution.200.json`, `.409` |
 | `POST /api/v1/admin/contributions/:id/reject` | `contribution/reject-contribution.200.json`, `.400` |
 | `POST /api/v1/admin/contributions/:id/correct` | `contribution/correct-contribution.200.json` |
+| `POST /api/v1/contributions/words` | `contribution/submit-word-anon.201.json` |
 | `GET /api/v1/search-misses` | `search-miss/list-search-misses.200.json` |
 | `GET /api/v1/admin/search-misses` | `search-miss/admin-list-search-misses.200.json` |
 | `POST /api/v1/admin/search-misses/:id/dismiss` | `search-miss/dismiss-search-miss.200.json`, `.404` |
@@ -58,8 +60,8 @@ di semua endpoint (401/403/429).
 
 Endpoint berubah (field baru, bentuk response beda, kasus baru) → file
 sample di sini diupdate **dalam PR yang sama**, bersama koleksi Bruno
-(`http/`, blok `docs {}` pada request terkait). Tiga sumber contoh —
-kode (OpenAPI schema), Bruno docs, dan folder ini — jangan saling
+(`http/`, blok `docs {}` pada request terkait). Tiga sumber contoh -
+kode (OpenAPI schema), Bruno docs, dan folder ini - jangan saling
  tertinggal.
 
 Semua sample mengikuti envelope standar `api-base-stack.md` Section 13.
