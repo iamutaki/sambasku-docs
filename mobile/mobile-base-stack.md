@@ -1,4 +1,4 @@
-# Base Stack Mobile - Kamus Digital Sambas-Indonesia (Flutter)
+# Base Stack Mobile: Kamus Digital Sambas-Indonesia (Flutter)
 
 Dokumen ini jadi acuan tetap untuk semua prompt/fitur mobile selanjutnya,
 mengikuti pola yang sudah terbukti di proyek `jnn_mobile` (repo pribadi),
@@ -6,7 +6,15 @@ disesuaikan dengan kontrak backend sambasku (`docs/api/api-base-stack.md`).
 Setiap prompt fitur baru (auth, pencarian, kontribusi, dst) mengikuti
 struktur dan konvensi di sini tanpa dijelaskan ulang.
 
----
+## Gaya tulisan (wajib)
+
+Tulisan teknis di repo ini tidak memakai em/en dash gaya AI.
+
+1. Jangan pakai em dash (`—`) atau en dash (`–`); ganti hyphen ASCII (`-`).
+2. Jangan berlebihan menyambung klausa dengan ` - `; lebih baik titik, koma, titik dua, atau kurung.
+3. Judul: titik dua atau frasa utuh lebih jelas dari `Judul - Subjudul` berulang.
+4. Referensi: `path: penjelasan` atau `path - penjelasan` dengan hyphen biasa (bukan `—`).
+5. Bullet markdown dan `| --- |` di tabel tetap boleh (itu sintaks).
 
 ## 1. Tech Stack
 
@@ -29,10 +37,8 @@ struktur dan konvensi di sini tanpa dijelaskan ulang.
 | Testing | flutter_test (+ widget test per halaman kunci) | Minimal: usecase unit + widget test form |
 | Lint | flutter_lints + analysis_options.yaml | Konsistensi antar kontributor |
 
-Firebase/FCM **tidak dipakai fase awal** (kamus belum butuh push) - dicatat
-sebagai upgrade path, jangan dipasang spekulatif.
-
----
+Firebase/FCM **tidak dipakai fase awal** (kamus belum butuh push).
+Catat sebagai upgrade path; jangan dipasang spekulatif.
 
 ## 2. Prinsip Arsitektur (3 lapis per fitur)
 
@@ -57,8 +63,6 @@ shared/ = halaman/util lintas fitur (splash, dev tool)
 
 Komunikasi antar fitur lewat provider yang di-export, bukan import internal
 ke file privat fitur lain (kejiran dengan aturan Section 4 backend).
-
----
 
 ## 3. Struktur Folder
 
@@ -116,8 +120,6 @@ lib/
 `main.dart` tetap ramping: init flavor, `SambaskuApiClient.instance`,
 DeviceIdService, lalu `runApp(ProviderScope(child: App()))`.
 
----
-
 ## 4. Konvensi Penamaan File
 
 | Tipe | Konvensi | Contoh |
@@ -133,16 +135,14 @@ DeviceIdService, lalu `runApp(ProviderScope(child: App()))`.
 | Datasource | `*_remote_datasource.dart` (+ `.g.dart`) | `auth_remote_datasource.dart` |
 | DTO | `*_dto.dart` (+ `.g.dart` + `.freezed.dart`) | `login_response_dto.dart` |
 | Router per fitur | `<fitur>_router.dart` | `dictionary_router.dart` |
-| File codegen | `*.g.dart`, `*.freezed.dart` - TIDAK diedit manual | |
+| File codegen | `*.g.dart`, `*.freezed.dart` (TIDAK diedit manual) | |
 
 Folder fitur: `features/<nama_fitur>/` (snake_case, singular: `auth`,
 `dictionary`, `contribution`).
 
----
-
 ## 5. Pola Lengkap Satu Fitur (contoh: auth)
 
-Alur dependency dan bentuk tiap file - semua fitur meniru pola ini.
+Alur dependency dan bentuk tiap file. Semua fitur meniru pola ini.
 
 **1. Entity + Failure (domain):**
 
@@ -158,7 +158,7 @@ class AuthFailure {
 }
 ```
 
-**2. Repository interface (domain) - semua method balikan `Either`:**
+**2. Repository interface (domain):** semua method balikan `Either`.
 
 ```dart
 abstract interface class AuthRepository {
@@ -168,7 +168,7 @@ abstract interface class AuthRepository {
 }
 ```
 
-**3. Usecase - satu aksi, `call(params)`, validasi/trim di sini:**
+**3. Usecase:** satu aksi, `call(params)`, validasi/trim di sini.
 
 ```dart
 class LoginUseCase {
@@ -199,7 +199,7 @@ LoginUseCase authLoginUseCase(Ref ref) =>
     LoginUseCase(ref.watch(authRepositoryProvider));
 ```
 
-**5. State (presentation/models) - copyWith manual dengan `clearX`:**
+**5. State (presentation/models):** copyWith manual dengan `clearX`.
 
 ```dart
 class AuthLoginState {
@@ -235,7 +235,7 @@ class AuthLoginNotifier extends _$AuthLoginNotifier {
 }
 ```
 
-**7. Halaman - hook consumer widget, UI forui, skeletonizer saat load:**
+**7. Halaman:** hook consumer widget, UI forui, skeletonizer saat load.
 
 ```dart
 class LoginPage extends HookConsumerWidget {
@@ -249,9 +249,7 @@ class LoginPage extends HookConsumerWidget {
 }
 ```
 
----
-
-## 6. Networking - Kontrak sambasku
+## 6. Networking: kontrak sambasku
 
 ### Envelope standar (wajib dipahami semua fitur)
 
@@ -308,7 +306,7 @@ abstract interface class AuthRemoteDatasource {
 }
 ```
 
-### Auth - client_type mobile (BEDA dari web)
+### Auth: client_type mobile (BEDA dari web)
 
 Refresh token backend memakai **httpOnly cookie untuk web**; mobile TIDAK
 bisa membaca cookie httpOnly, jadi backend menyediakan varian body
@@ -322,19 +320,17 @@ bisa membaca cookie httpOnly, jadi backend menyediakan varian body
 ### AuthInterceptor (pola jnn_mobile, disesuaikan)
 
 - `onRequest`: sisipkan `Authorization: Bearer <accessToken>`
-- `onError` 401: refresh SEKALI via `_refreshFuture` bersama (queue -
+- `onError` 401: refresh SEKALI via `_refreshFuture` bersama (queue:
   beberapa request 401 bersamaan menunggu satu refresh), lalu retry;
   gagal refresh → clear token + `setIsAuth(false)` (redirect login oleh
   router)
 - Timeouts: connect/receive/send 15 detik
 
-### Pagination - cursor-based (WAJIB)
+### Pagination: cursor-based (WAJIB)
 
 Semua list backend memakai `?limit=&cursor=` + `meta.next_cursor` +
-`meta.has_more` - TIDAK ADA page number. Pola UI: infinite scroll /
+`meta.has_more`. TIDAK ADA page number. Pola UI: infinite scroll /
 tombol "Muat lagi" menyimpan `nextCursor` di state halaman.
-
----
 
 ## 7. Routing
 
@@ -357,14 +353,12 @@ Route awal sambasku:
 | `/contribute` | Form usul kata baru (anonim atau login) |
 | `/profile` | Profil, logout |
 
----
-
 ## 8. Flavor & Environment
 
 - `flavors.dart`: `enum Flavor { staging, production }` + class `F`
   (`F.name`, `F.title`, `F.isStaging`)
 - flutter_flavorizr membuat dua target: nama app
-  "SambasKu (Staging)" / "SambasKu"
+  "SambasKu Staging" / "SambasKu"
 - `core/constants/env.dart` dengan envied membaca `.env` (git-ignored,
   ada `.env.example`):
 
@@ -375,10 +369,8 @@ IMAGEKIT_PUBLIC_KEY=public_xxx
 IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/apinull
 ```
 
-Pemilihan host per flavor di `env.dart` (switch `F.appFlavor`) - TIDAK
-ADA host hardcode di datasource.
-
----
+Pemilihan host per flavor di `env.dart` (switch `F.appFlavor`).
+TIDAK ADA host hardcode di datasource.
 
 ## 9. Upload Gambar (pola direct upload)
 
@@ -392,11 +384,9 @@ Sama seperti web admin (base-stack Section 8 backend + bukti staging):
 4. Kirim `url` + `provider_file_id` sebagai `images[]` saat submit kata
 
 **Token upload SEKALI PAKAI** (terbukti di staging: request kedua dengan
-token sama ditolak) - satu token per file; expire 30 menit.
+token sama ditolak). Satu token per file; expire 30 menit.
 `core/network/imagekit_api_client.dart` = Dio terpisah tanpa auth
 interceptor backend (host ImageKit, bukan API host).
-
----
 
 ## 10. Strategi Testing
 
@@ -408,8 +398,6 @@ interceptor backend (host ImageKit, bukan API host).
 
 Aturan: tiap usecase baru wajib unit test; tiap halaman form minimal 1
 widget test (sukses + gagal). Jalankan `flutter test` di CI.
-
----
 
 ## 11. Mapping error_code → Perlakuan UI
 
@@ -424,10 +412,8 @@ widget test (sukses + gagal). Jalankan `flutter test` di CI.
 | `IMAGE_UPLOAD_UNAVAILABLE` | 503 | Sembunyikan fitur upload gambar |
 | `INTERNAL_ERROR` | 500 | Pesan generik + retry |
 
-Katalog lengkap: `api/ERROR_CODES.md` (satu sumber kebenaran - jangan
+Katalog lengkap: `api/ERROR_CODES.md` (satu sumber kebenaran; jangan
 menduplikasi daftar di mobile, cukup perlakuan umum per kelompok).
-
----
 
 ## 12. Urutan Fitur Mobile (roadmap)
 
@@ -444,17 +430,15 @@ menduplikasi daftar di mobile, cukup perlakuan umum per kelompok).
 6. **Profil**: info user, logout (revoke refresh)
 7. Menyusul: Google sign-in (menunggu backend Section 23), notifikasi
 
----
-
 ## 13. Referensi Terkait
 
-- `docs/api/api-base-stack.md` - kontrak backend (envelope Section 13,
+- `docs/api/api-base-stack.md`: kontrak backend (envelope Section 13,
   pagination, error, auth mobile varian)
-- `docs/api/00-api-auth.md` - endpoint auth (termasuk client_type mobile)
+- `docs/api/00-api-auth.md`: endpoint auth (termasuk client_type mobile)
 - `docs/api/01-api-tambah-kata.md`, `03-api-kontribusi-verifikasi.md`
-- `api/ERROR_CODES.md` - katalog error code
-- `docs/json/` - sample response semua endpoint (mock untuk unit/widget
-  test - JANGAN hardcode bentuk response di luar file ini)
-- repo `http/` - koleksi Bruno (perilaku endpoint hidup, contoh chaining)
-- repo referensi pola: `jnn_mobile` (iamutaki) - sumber konvensi asli
+- `api/ERROR_CODES.md`: katalog error code
+- `docs/json/`: sample response semua endpoint (mock untuk unit/widget
+  test; JANGAN hardcode bentuk response di luar file ini)
+- repo `http/`: koleksi Bruno (perilaku endpoint hidup, contoh chaining)
+- repo referensi pola: `jnn_mobile` (iamutaki): sumber konvensi asli
   dokumen ini
