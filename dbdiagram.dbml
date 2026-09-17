@@ -296,6 +296,9 @@ Table categories {
   updated_at timestamp
   deleted_at timestamp
   deleted_by varchar(26) [ref: > users.id]
+  indexes {
+    (name) [unique, name: 'categories_active_name_idx', note: 'parsial: hanya baris deleted_at IS NULL']
+  }
 }
 
 
