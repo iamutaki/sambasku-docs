@@ -57,7 +57,8 @@ Table users {
 
   username varchar(100) [not null, unique]
   email varchar(255) [not null, unique]
-  password_hash varchar(255) [not null]
+  // NULLABLE (Section 23): user OAuth-only tidak punya password
+  password_hash varchar(255)
 
   // administrator
   // editor
@@ -614,6 +615,35 @@ Table translation_requests {
   }
 }
 
+
+// ============================================================
+// AUTH IDENTITIES - penautan akun ke provider eksternal
+// (base-stack.md Section 23: Google OAuth dll; menyusul implementasi)
+// ============================================================
+
+Table auth_identities {
+  id varchar(26) [pk]
+
+  user_id varchar(26) [not null, ref: > users.id]
+
+  // google | github | apple | dst
+  provider varchar(30) [not null]
+
+  // ID stabil dari provider (Google `sub`) - BUKAN email
+  provider_user_id varchar(255) [not null]
+
+  // snapshot email saat penautan (email provider bisa berubah)
+  email_at_provider varchar(255)
+
+  created_at timestamp [not null]
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
+  Indexes {
+    (provider, provider_user_id) [unique]
+    (user_id)
+  }
+}
 
 // ============================================================
 // CONTRIBUTIONS

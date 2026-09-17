@@ -2019,3 +2019,91 @@ menambah integritas.
 `is_verified` menjawab "dipercaya?", `is_corrected` menjawab "pernah diubah
 verifikator?". Gerbang publikasi di tangan verifikator; penolakan selalu
 bersalah; koreksi tidak menghapus jejak.*
+
+
+---
+
+## 23. Auth Eksternal (Google OAuth) - Kontrak Desain (menyusul diimplementasi)
+
+Prinsip: client app (web admin / mobile / web user) yang menjalankan alur
+"Sign in with Google" via SDK Google; backend hanya MENERIMA Google ID
+token, MEMVERIFIKASI, lalu menerbitkan JWT milik kita sendiri (RS256,
+pola token Section 00-api-auth.md). Backend TIDAK menjadi target redirect
+OAuth - pola ini paling cocok untuk multi-client dan tetap sederhana.
+
+### Alur
+
+```text
+1. Client   : Sign in with Google (SDK/browser) -> ID token (JWT RS256 Google)
+2. Client   : POST /api/v1/auth/google  { "id_token": "..." }
+3. Backend  : verifikasi signature via JWKS Google (jose, Web Crypto),
+              cek iss, aud == GOOGLE_CLIENT_ID, exp, email_verified
+4. Backend  : cocokkan/link/daftar user (aturan di bawah)
+5. Backend  : terbitkan access + refresh token - response SAMA PERSIS
+              dengan login biasa (client tidak perlu tahu bedanya)
+```
+
+### Perubahan skema database (migration 0008 kelak)
+
+Tabel BARU `auth_identities` (satunya tempat identitas eksternal):
+
+| Kolom | Isi |
+| --- | --- |
+| `id` | ULID (Section 19) |
+| `user_id` | FK users |
+| `provider` | `'google'` (terbuka: `'github'`, `'apple'`, dst) |
+| `provider_user_id` | Google `sub` - identitas STABIL (email Google bisa berubah) |
+| `email_at_provider` | snapshot email saat link (nullable) |
+| soft delete standar | Section 7 |
+
+UNIQUE `(provider, provider_user_id)` + index `user_id`.
+
+`users.password_hash` menjadi **NULLABLE** - user OAuth-only tidak punya
+password; login password hanya berlaku untuk akun yang lahir dari
+register. Login wajib menolak `password_hash IS NULL`
+(INVALID_CREDENTIALS), dan compare() mengembalikan false untuk hash kosong.
+
+### Aturan link akun (urutan pemeriksaan)
+
+1. `auth_identities (google, sub)` ada -> login user terkait. Selesai.
+2. Tidak ada, tapi `users.email` cocok (email Google sudah `email_verified`)
+   -> LINK: buat baris auth_identities menempel ke akun lama (kepemilikan
+   email terverifikasi = bukti cukup).
+3. Tidak ada sama sekali -> buat user baru: username unik (turunan
+   email/nama + sufiks angka bila bentrok), role `'contributor'`
+   (default, sama seperti register), `password_hash` NULL.
+
+Role admin/editor TIDAK PERNAH diturunkan dari provider - tetap penugasan
+manual (DB/panel admin). Google hanya membuktikan identitas, bukan wewenang.
+
+### Endpoint & konfigurasi
+
+- `POST /api/v1/auth/google` - publik; rate limit 5/15 menit per IP
+  (setara login, Section 15)
+- Body: `{ "id_token": string }`; response = envelope login standar
+- Error code BARU saat implementasi: `INVALID_GOOGLE_TOKEN` (401) -
+  daftarkan di ERROR_CODES.md di PR yang sama
+- Env BARU: `GOOGLE_CLIENT_ID` (wajib saat fitur aktif; secret di
+  Workers, var di dev)
+- Port: `GoogleTokenVerifierPort` di `auth/application/ports/` - impl
+  memakai `jose` `createRemoteJWKSet` + `jwtVerify` (Web Crypto: jalan
+  IDENTIK di Node dan Workers; JWKS di-fetch dan di-cache oleh jose)
+
+### Catatan keamanan (wajib)
+
+- SELALU cek `aud` (client ID kita) dan `iss` - ID token tanpa keduanya
+  bukan bukti apa pun (token milik app lain bisa "dipakai ulang")
+- Identitas stabil = `sub`, bukan email
+- `password_hash NULL` tidak boleh punya jalur login password
+- Refresh token rotasi + httpOnly cookie: reuse mekanisme login biasa
+
+### Urutan implementasi (satu PR per langkah bila besar)
+
+1. Migration 0008: tabel `auth_identities` + `password_hash` nullable
+   (+ update dbdiagram.dbml dan Section 7 flow)
+2. Port + impl verifier + env GOOGLE_CLIENT_ID
+3. `LoginWithGoogleUseCase` + controller + route + validator (Zod)
+4. Test: unit (mock port: link ketiga cabang aturan), e2e (happy path
+   + token invalid 401)
+5. Bruno `auth/login-google.bru` + sample `docs/json/auth/` - satu PR
+   (Section 20: tiga sumber sinkron)
