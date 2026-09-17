@@ -10,7 +10,7 @@ struktur dan konvensi di sini, jadi tidak perlu dijelaskan ulang tiap kali.
 
 | Layer                    | Pilihan                                        | Alasan                                                                                      |
 | ------------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Runtime                  | Node.js (v20+ LTS)                             | Kompatibilitas library terluas, ekosistem matang                                            |
+| Runtime                  | Node.js (v20+ LTS) **dan Cloudflare Workers** (dual entry — lihat Section 8) | Kompatibilitas library terluas + opsi edge; satu composition root untuk dua runtime |
 | Framework                | Hono                                           | Ringan, cepat, tidak memaksa struktur (cocok clean architecture)                            |
 | Bahasa                   | TypeScript                                     | Type safety, wajib untuk clean architecture yang solid                                      |
 | ORM/Query Builder        | Drizzle ORM + drizzle-kit                      | Type-safe, ringan, migrasi eksplisit, cocok dgn Hono                                        |
@@ -359,6 +359,49 @@ koneksi secara langsung — semua akses lewat instance `db` yang
 di-export dari sini. Primary key juga DB-agnostic: semua tabel pakai
 ULID — lihat Section 19. Contoh konkret pembagiannya (Docker di lokal,
 Neon di staging/production) ada di Section 17.
+
+### Dua Runtime: Node + Cloudflare Workers (Dual Entry)
+
+Backend bisa dijalankan di DUA runtime dengan satu composition root
+(`app.ts`) yang sama:
+
+| Runtime | Entry | Koneksi DB | Email | Catatan |
+| --- | --- | --- | --- | --- |
+| Node (default dev/test) | `main.ts` (`@hono/node-server`) | `pg` TCP langsung (`DATABASE_URL`) | SMTP (nodemailer) atau Resend | `pnpm dev` |
+| Cloudflare Workers | `worker.ts` (`export default { fetch }`) | **driver Neon serverless (WebSocket)** via secret `DATABASE_URL` — pool PER-REQUEST (AsyncLocalStorage, lihat `client.ts`) | Resend (HTTP) | `pnpm dev:worker` / `pnpm deploy` |
+
+Keputusan penting (hasil diagnosis staging 2026-09-17):
+
+- **Workers ≠ driver `pg`/node:net** — terbukti flaky ±25% (socket bisu
+  "Query read timeout", konsisten dengan/tanpa Hyperdrive). Jalur yang
+  stabil: `@neondatabase/serverless` (WebSocket, transaksi didukung).
+- **WebSocket = I/O milik request pembuatnya** — Workers melarang
+  objek I/O dipakai lintas request ("Cannot perform I/O on behalf of a
+  different request"). Karena itu `client.ts` di Workers adalah FACADE
+  per-request: middleware `requestDb` membuat pool per request dan
+  menutupnya via `waitUntil`; seluruh modul lain tetap `import { db }`
+  tanpa perubahan. Type disatukan lewat satu cast (query builder dan
+  transaction kedua driver identik di runtime).
+- **Konsekuensi disadari**: jalur Workers terikat adapter Neon (§8 direvisi
+  dari posisi awal yang menolak driver Neon). Mitigasi: DB tetap Postgres
+  standar (dump/restore ke mana pun) + entry Node tetap memakai `pg`
+  generik — keluar dari Neon = keluar dari Workers, bukan rewrite.
+- **Hyperdrive tidak dipakai jalur Workers** saat ini (driver WS tidak
+  bicara protokol wire Postgres; dan kombinasi Hyperdrive+pg kena flaky
+  di atas). `neon-http` tetap ditolak: transaksi tidak didukung. D1
+  tetap ditolak: ganti dialek total (`ilike`, `selectDistinctOn`,
+  error code PG, riwayat migration).
+- Impl provider runtime-agnostic: password hashing **PBKDF2 via Web
+  Crypto** (100.000 iterasi — plafon Workers; hash-wasm/argon2 TIDAK
+  bisa: Workers melarang kompilasi WASM dinamis, bahkan saat
+  module-init), signing ImageKit pakai Web Crypto, logger = JSON via
+  `console` (Workers Logs).
+- `worker.ts` memakai **lazy import**: isi `process.env` dari bindings
+  dulu, baru `import('./app')` — karena `env.ts`/`client.ts` membaca
+  env saat module load. Migration TETAP dari CI Node (`drizzle-kit
+  migrate` dengan direct URL).
+- Rate limiter in-memory di Workers bersifat **per-isolate** — jalan
+  untuk awal, upgrade ke Durable Objects/Redis kalau disalahgunakan.
 
 ### Hal yang Perlu Dihindari agar Tetap Portable
 
@@ -863,7 +906,8 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173
 | Local dev           | `.env` (git-ignored)                                                           | Copy dari`.env.example`, isi manual                                                                |
 | Test                | `.env.test` (git-ignored)                                                      | `DATABASE_URL` mengarah ke DB test terpisah (Section 10)                                           |
 | CI (GitHub Actions) | GitHub Secrets                                                                   | Diset lewat Settings → Secrets, di-inject sebagai env di workflow                                   |
-| Staging/Production  | GitHub Environments + secrets provider hosting (Railway/Render/Fly.io vars, dst) | Terpisah per environment, akses dibatasi + butuh approval untuk deploy production (lihat Section 16) |
+| Staging/Production (Node)  | GitHub Environments + secrets provider hosting (Railway/Render/Fly.io vars, dst) | Terpisah per environment, akses dibatasi + butuh approval untuk deploy production (lihat Section 16) |
+| Production (Workers) | `wrangler.toml [vars]` (non-secret) + `wrangler secret put` (secret) + binding Hyperdrive | Setup lengkap di Section 17 — "Deploy ke Cloudflare Workers"; DB lewat `HYPERDRIVE.connectionString` |
 
 ### Aturan Wajib
 
@@ -1532,6 +1576,37 @@ Aturan Neon (wajib dipatuhi semua prompt/deploy):
 - Kalau ada instalasi PostgreSQL lain yang sudah memakai port 5432 di
   mesin lokal (mis. Homebrew), matikan dulu sebelum `docker compose up`
   — atau ubah mapping port di `docker-compose.yml` + `DATABASE_URL`
+
+### Deploy ke Cloudflare Workers (Production)
+
+Lanjutan tabel di atas — production bisa memilih Workers sebagai runtime
+(lihat "Dua Runtime" di Section 8). Urutan setup PERTAMA kali:
+
+```text
+1. npx wrangler login
+2. Secrets (jangan pernah di wrangler.toml):
+     npx wrangler secret put DATABASE_URL       # Neon POOLED URL ?sslmode=require
+                                                # (driver Neon serverless WS — lihat Section 8)
+     npx wrangler secret put JWT_PRIVATE_KEY    # PEM (key pair khusus environment)
+     npx wrangler secret put JWT_PUBLIC_KEY
+     npx wrangler secret put RESEND_API_KEY     # email HTTP (opsional)
+     npx wrangler secret put IMAGEKIT_PRIVATE_KEY # opsional
+3. Migration tetap dari CI Node (GitHub Actions):
+     pnpm drizzle-kit migrate  # Neon DIRECT URL (Section 16) — bukan via Workers
+4. pnpm deploy   # = wrangler deploy (setelah CI hijau + backup DB, Section 16)
+```
+
+Aturan wajib tambahan (setara aturan Neon di atas):
+
+- `[vars]` di `wrangler.toml` HANYA untuk config non-secret; semua
+  kredensial lewat `wrangler secret put` — konsisten Section 12
+  (`.env`/secrets tidak pernah masuk git)
+- Simpan `wrangler.toml` + `worker.ts` di repo
+- Log production = Workers Logs (logger JSON via `console` otomatis
+  terekap; `wrangler tail --format json` untuk streaming + diagnosis)
+- Smoke test pasca-deploy: `cd http && bruno run --env <env> auth/
+  language/ word/ contribution/ search-miss/ category/ audit/`
+  (environment Bruno lokal, tidak di-commit — Section 20)
 
 ### Kaitan dengan Section Sebelumnya
 
