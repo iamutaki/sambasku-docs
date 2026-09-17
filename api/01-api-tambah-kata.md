@@ -113,9 +113,14 @@ ENDPOINT UTAMA (semua di bawah prefix /api/v1 - Section 11):
      ],
      "word_type": "word",                  // word | idiom | peribahasa | ungkapan
      "category_ids": ["01HXYZ…", "01HXYZ…"],
-     "related_words": [
-       { "word_id": "01HXYZ…", "relation_type": "synonym" }
-     ],
+"related_words": [
+        { "word_id": "01HXYZ…", "relation_type": "synonym" },   // Form A: link ke kata yang SUDAH ada
+        { "relation_type": "synonym",                           // Form B: kreasi sinonim BARU inline -
+          "word": { "lemma": "ngamakn",                        //   inherit definisi parent secara default
+                    "inherit_meanings": true,
+                    "meaning_overrides": [],
+                    "status": "draft" } }                       // kontrak lengkap: 04-api-sinonim-inline.md
+      ],
      "variants": [                          // bentuk surface, opsional
        { "form": "memakan", "variant_type": "derivation",
          "affix_type": "prefix", "affix_value": "me-" }
@@ -217,6 +222,11 @@ ENDPOINT UTAMA (semua di bawah prefix /api/v1 - Section 11):
    Aturan: invers TIDAK disimpan (derived dari query - appears_in di
    detail); duplikat word_id dalam satu request ditolak; relasi masuk
    tampil sebagai appears_in di detail kata komponen.
+   Untuk relation_type "synonym", related_words juga menerima **Form B**:
+   membuat entri sinonim BARU secara inline yang default-nya mewarisi
+   definisi/makna induk (bisa di-override per makna). Kontrak lengkap di
+   `04-api-sinonim-inline.md` - bentuk lain tetap harus lewat Form A
+   (link kata yang sudah ada).
 
    BENTUK SURFACE (variants[]) - tabel word_variants:
    - form + variant_type (inflection|derivation|alternative|reduplication)

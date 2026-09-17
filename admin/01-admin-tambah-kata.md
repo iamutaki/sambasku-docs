@@ -117,8 +117,12 @@ INTEGRASI BACKEND (WAJIB - kontrak di 01-api-tambah-kata.md):
    POST /api/v1/admin/words  (rate limit 30 req/menit per user)
    Body: language_id, dialect_id?, lemma, notes?, meanings[] (word_class_id,
    definition, order_index, translations[], examples[]), category_ids[],
-   synonym_word_ids[], pronunciation?, status
+   synonym_word_ids[] ATAU sinonim baru inline (related_words Form B)[],
+   pronunciation?, status
    - semua *_id adalah ULID string pilihan dari dropdown, BUKAN input bebas
+   - sinonim juga bisa dibuat BARU sekaligus (entri belum ada di DB) dengan
+     default ikut definisi induk + override per makna — kontrak &
+     bentuk body di 04-api-sinonim-inline.md
 
 3. ALUR STATUS (words.status - Section 22 approval gate)
    - 'draft' → tombol Simpan Draft (tidak tayang, tidak masuk antrean)

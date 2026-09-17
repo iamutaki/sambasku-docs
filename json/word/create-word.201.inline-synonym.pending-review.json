@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "data": {
+    "word_id": "01JDWORDINDUKMINUM0000000000",
+    "lemma": "minum",
+    "word_type": "word",
+    "status": "pending_review",
+    "is_verified": false,
+    "created_at": "2026-09-18T10:00:00Z",
+    "warnings": [],
+    "inline_created_words": [
+      {
+        "word_id": "01JDWORDMANGINUM00000000000",
+        "lemma": "manginum",
+        "relation_type": "synonym",
+        "word_type": "word",
+        "status": "pending_review",
+        "is_verified": false,
+        "meanings_count": 1,
+        "inherited_meanings_count": 1,
+        "overridden_meanings_count": 0,
+        "warnings": []
+      }
+    ]
+  }
+}

@@ -1650,6 +1650,8 @@ Aturan wajib tambahan (setara aturan Neon di atas):
 - `03-api-kontribusi-verifikasi.md` - prompt modul contribution (antrean
   review approve/reject/correct + kontribusi media: gambar, pronounce,
   contoh kalimat)
+- `04-api-sinonim-inline.md` - sinonim BARU secara inline saat create word
+  di POST /admin/words (inherit makna induk by default + override per makna)
 - `docs/dbdiagram.dbml` - skema database lengkap
 - `ERROR_CODES.md` - katalog error code (buat terpisah, lihat Section 13)
 - repo `http/` - koleksi Bruno untuk uji fungsional semua endpoint (Section 20)

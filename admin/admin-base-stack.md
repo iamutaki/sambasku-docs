@@ -692,7 +692,112 @@ di sini, belum diterapkan.
 
 ---
 
-## 17. Referensi Terkait
+## 17. Responsive & Aturan Anti-Overflow di Layar Kecil
+
+Konsol admin dipakai juga dari HP/tablet — setiap halaman WAJIB tidak
+menimbulkan **scroll horizontal** di viewport 320px–768px. Prinsip:
+**mobile-first** (susun untuk layar sempit dulu, perlebar bertahap dengan
+breakpoint), bukan sebaliknya.
+
+### Breakpoint yang Dipakai
+
+Mengikuti antd Grid (semua komponen dihitung dari lebar **container**,
+bukan viewport):
+
+| Breakpoint | Min lebar | Maksud                                      |
+| ---------- | --------- | ------------------------------------------- |
+| `xs`       | < 576px   | HP portrait — baseline semua layout          |
+| `sm`       | ≥ 576px   | HP landscape / tablet kecil                 |
+| `md`       | ≥ 768px   | Tablet — naik grid form dari 1 ke banyak col |
+| `lg`       | ≥ 992px   | Laptop — titik collapse default Sider        |
+| `xl`/`xxl` | ≥ 1200/1600px | Layar lebar — kolom tabel boleh lebih banyak |
+
+### Aturan Grid & Form
+
+- Setiap `Row` di form memakai pola **`Col xs={24} md={...} lg={...}`** —
+  `xs={24}` memaksa satu kolom penuh di HP, baru dibagi rata pada `md`/`lg`.
+  JANGAN pakai `Col` tanpa `xs` (default `xs=24` memang aman, tapi perlebaran
+  harus eksplisit supaya tidak kelewat).
+- Contoh yang sudah benar (`create-word-page.tsx`): lemma `xs={24} md={12}
+  lg={10}`, jenis entri `xs={24} md={6} lg={4}` — dsb.
+- Ruas yang sempit di desktop (mis. `InputNumber` urutan, `Select` afiks)
+  tetap `xs={24}` di HP; jangan paksa dua field berdampingan lebih dari
+  ~140px dan hanya bilamana jelas muat.
+
+### Aturan Action Bar (Tombol Aksi Form) — WAJIB
+
+Tombol baris-baris form (mis. `Batal`, `Simpan sebagai Draft`,
+`Simpan & Publikasikan`) paling rawan overflow karena teksnya panjang dan
+ditaruh berdampingan dalam satu `Space` horizontal. Aturan keras:
+
+- **`Space`/`Flex` horizontal berisi tombol boleh menumpuk (wrap) dan
+  boleh lebih tinggi, TETAPI tidak boleh lebih lebar dari container.**
+  Setiap tombol harus muat dalam satu baris sendirian.
+- **Deteksi layar sempit dengan `Grid.useBreakpoint()`** (bukan prop
+  responsif object — `Flex` antd v6 **belum** mendukung nilai responsif
+  untuk `vertical`/`justify`/`gap`, itu CSS biasa).
+- Layout HP (`!md`):
+  - `Flex` diubah **`vertical`** (`flex-direction: column`) → info/peringatan
+    naik ke baris sendiri, tombol di bawahnya.
+  - Setiap tombol diberi **`block`** → full-width, menumpuk satu per baris.
+    Mustahil overflow, dan area sentuh besar (aksesibilitas).
+- Layout desktop (`md`): kembali ke baris semula — tombol inline kanan,
+  `justify="space-between"`.
+- **`<Space wrap>` selalu diset** sebagai jaring pengaman meski di desktop.
+- Pola baku action bar (`create-word-page.tsx`):
+
+```tsx
+const { md } = Grid.useBreakpoint();
+
+<Flex justify={md ? 'space-between' : 'flex-start'} vertical={!md} wrap gap={12} style={{ ... }}>
+  <div>{peringatan ?? null}</div>
+  <Space wrap style={{ width: md ? undefined : '100%' }}>
+    <Button block={!md} onClick={() => navigate({ to: '/words' })}>Batal</Button>
+    <Button block={!md} icon={<SaveOutlined />} loading={...} onClick={() => submit('draft')}>Simpan sebagai Draft</Button>
+    <Button block={!md} type="primary" icon={<SendOutlined />} loading={...} onClick={() => submit('published')}>Simpan &amp; Publikasikan</Button>
+  </Space>
+</Flex>
+```
+
+### Aturan Tabel
+
+- Lanjutkan lengkap dari **Section 13**: kolom aksi `meta: { fixed: 'right' }`,
+  kolom pengenal `meta: { fixed: 'left' }`, kolom sekunder
+  `meta: { responsive: [...] }` supaya layar sempit menampilkan field inti
+  dulu. `DataTable` sudah menyetel `scroll.x` otomatis — tabel boleh
+  scroll internal, halaman tidak boleh.
+- Tabel BOLEH punya scroll horizontal internal; itu berbeda dengan halaman
+  yang overflow. Pastikan memang tabelnya (bukan shell/layout) yang melebar.
+
+### Aturan Layout & Teks Lainnya
+
+- Padding `console-layout__content` sudah otomatis menyusut via media query
+  di `styles/index.css` (≤768px → `16px 12px`, ≤480px → `12px 8px`).
+  Jangan menimpa padding konten dengan nilai tetap besar di komponen.
+- Hindari `white-space: nowrap` pada label/teks panjang (kecuali brand
+  Sider yang sudah tersembunyi saat collapsed). Teks panjang biarkan wrap.
+- `PageHeader` + tombol aksi kanan: pada layar sempit pastikan aksi turun
+  ke baris sendiri, bukan ditaruh sejajar samping judul.
+- `Space`/`Flex` dengan banyak anak: selalu sertakan `wrap` dan uji nilai
+  minimum anak paling lebar sendirian.
+
+### Aturan Verifikasi (Checklist)
+
+Sebelum prompt fitur dianggap selesai, verifikasi responsif pada lebar:
+**320px, 375px, 390px, 768px, 1024px** (devtools device mode):
+
+- [ ] Tidak ada scroll horizontal — `document.documentElement.scrollWidth
+      <= innerWidth` (kecuali overflow internal tabel yang disengaja).
+- [ ] Setiap tombol aksi baris form muat utuh & bisa ditekan (tap target
+      ≥ 44px bila memungkinkan).
+- [ ] Semua field form dalam satu kolom (`xs={24}`) di HP; label tidak
+      terpotong.
+- [ ] Sider otomatis collapse (di bawah `lg`), dan brand/title tidak
+      meluber.
+
+---
+
+## 18. Referensi Terkait
 
 - `docs/api/api-base-stack.md` — acuan backend: envelope (Section 13),
   pagination (Section 13), auth (Section 12, 23), role (Section 22), audit

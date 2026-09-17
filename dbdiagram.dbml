@@ -192,6 +192,10 @@ Table meanings {
 
   definition text [not null]
 
+  // 04-api-sinonim-inline.md: makna hasil SALINAN ketika sinonim dibuat
+  // inline (inherit makna induk). NULL = makna mandiri / sudah di-override.
+  inherited_from_meaning_id varchar(26) [ref: > meanings.id]
+
   order_index int [not null, default: 0]
 
   notes text
