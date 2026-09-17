@@ -47,7 +47,7 @@ di semua endpoint (401/403/429).
 | `GET /api/v1/admin/contributions/:id` | `contribution/get-contribution-detail.200.json`, `.404` |
 | `POST /api/v1/admin/contributions/:id/approve` | `contribution/approve-contribution.200.json`, `.409` |
 | `POST /api/v1/admin/contributions/:id/reject` | `contribution/reject-contribution.200.json`, `.400` |
-| `POST /api/v1/admin/contributions/:id/correct` | `contribution/correct-contribution.200.json` |
+| `POST /api/v1/admin/contributions/:id/correct` | `contribution/correct-contribution.200.json` (publish) , `.200.publish-false` (koreksi saja) |
 | `POST /api/v1/contributions/words` | `contribution/submit-word-anon.201.json` |
 | `GET /api/v1/search-misses` | `search-miss/list-search-misses.200.json` |
 | `GET /api/v1/admin/search-misses` | `search-miss/admin-list-search-misses.200.json` |

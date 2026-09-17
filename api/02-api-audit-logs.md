@@ -70,17 +70,20 @@ ENDPOINT (semua di bawah prefix /api/v1 - Section 11):
    - Cursor-based pagination (Section 13): WHERE id < cursor, LIMIT limit+1
      untuk deteksi has_more
    - Response 200 - envelope + meta cursor-based (Section 13):
-     { "success": true,
-       "data": [ { "id": "01ARZ…", "user_id": "01ARZ…",
-                   "action": "create", "entity_type": "word",
-                   "entity_id": "01ARZ…",
-                   "old_data": null,
-                   "new_data": { "lemma": "makatn", "status": "published" },
-                   "request_id": "a1b2c3…",
-                   "created_at": "2026-09-10T01:00:00.000Z" } ],
-       "meta": { "limit": 20,
-                 "next_cursor": "01ARZ3NDEKTSV4RRFFQ69G5FAV" | null,
-                 "has_more": true | false } }
+      { "success": true,
+        "data": [ { "id": "01ARZ…", "user_id": "01ARZ…",
+                    "user_name": "audita" | null,
+                    "action": "create", "entity_type": "word",
+                    "entity_id": "01ARZ…",
+                    "old_data": null,
+                    "new_data": { "lemma": "makatn", "status": "published" },
+                    "request_id": "a1b2c3…",
+                    "created_at": "2026-09-10T01:00:00.000Z" } ],
+        "meta": { "limit": 20,
+                  "next_cursor": "01ARZ3NDEKTSV4RRFFQ69G5FAV" | null,
+                  "has_more": true | false } }
+     user_name = username pelaku dari LEFT JOIN users (null kalau user_id
+     null / user sudah dihapus); user_id tetap dikirim sebagai identitas.
      next_cursor = id item terakhir di data[] kalau has_more, selainnya null;
      client memakai ini di query param cursor untuk halaman berikutnya
      (pola "Muat lagi" / infinite scroll - TANPA total_items/total_pages).

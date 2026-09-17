@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "data": {
+    "contribution_id": "01JDCONTRIB00000000000002",
+    "entity_type": "example",
+    "entity_id": "01JDEXAMPLEMEDIA0000000001",
+    "status": "pending",
+    "is_corrected": true
+  }
+}

@@ -4,6 +4,7 @@
     {
       "id": "01JDAUDITLOG10000000000000",
       "user_id": "01JDUSERADMIN0000000000000",
+      "user_name": "admin",
       "action": "create",
       "entity_type": "word",
       "entity_id": "01JDWORDMAKATN000000000000",

@@ -205,6 +205,12 @@ authenticate + authorizeRole('admin', 'root', 'reviewer')
 5. POST /api/v1/admin/contributions/:id/correct
    Body: discriminated union pada "entity_type" (WAJIB cocok dengan
    entity_type kontribsi yang dituju - beda → 400 VALIDATION_ERROR):
+   - "publish" boolean (opsional, default TRUE) ada di SEMUA varian:
+       * true  → koreksi LANGSUNG tayang (published + verified)
+       * false → KOREKSI SAJA: entity ditimpa + is_corrected=true TAPI
+                 tetap 'pending_review'; contributions TETAP 'pending'
+                 dan TIDAK ada keputusan review (masih bisa di-approve/
+                 publish atau dikoreksi lagi belakangan)
    - { "entity_type": "word", …payload lengkap sama seperti POST
      admin/words TANPA field status… }        // replace semantics
    - { "entity_type": "pronunciation", "notation": "ipa", "value": "…",
@@ -219,20 +225,26 @@ authenticate + authorizeRole('admin', 'root', 'reviewer')
    a. Pre-check sama seperti approve (404 / 409 / entity_type cocok)
    b. AMBIL SNAPSHOT entity pra-koreksi → audit old_data (WAJIB -
       jejak apa yang diubah verifikator)
-   c. Terapkan koreksi + publish + verified:
-      - word → WordRepository.updateWithRelations(entityId, {...payload,
-        status 'published', isVerified true, isCorrected true}, reviewerId)
-      - anak → patch barisnya SET ...field, status='published',
+   c. Terapkan koreksi:
+      - publish=true  → word: status 'published', isVerified true,
+        isCorrected true; anak: patch SET ...field, status='published',
         is_verified=true, is_corrected=true (DI DALAM transaksi review())
-   d. contributions.status='corrected' + review row status='corrected'
-      (comment opsional di body)
+      - publish=false → word: status 'pending_review', isVerified false,
+        isCorrected true; anak: patch SET ...field, status='pending_review',
+        is_verified=false, is_corrected=true (applyChildCorrection, satu tx)
+   d. publish=true  → contributions.status='corrected' + review row
+      status='corrected' (comment opsional di body)
+      publish=false → contributions.status TETAP 'pending', TANPA review row
    e. Audit: action 'correct', old_data snapshot, new_data ringkas
-   Response 200: { …, "status": "corrected",
-     "is_corrected": true }
+      { status, is_verified, is_corrected, published }
+   Response 200:
+   - publish=true  → { …, "status": "corrected", "is_corrected": true }
+   - publish=false → { …, "status": "pending",   "is_corrected": true }
 
-   CATATAN: correct pada entity word = dua tulis (update entity, lalu
-   transaksi review) - bukan satu transaksi. Window kecil, risiko
-   diterima; correct pada anak sepenuhnya atomik di review().
+   CATATAN: correct pada entity word saat publish=true = dua tulis
+   (update entity, lalu transaksi review) - bukan satu transaksi. Window
+   kecil, risiko diterima. publish=false: word = satu tulis
+   updateWithRelations; anak = satu tx applyChildCorrection.
    (ponytail: dokumentasikan; naik ke satu tx kalau jadi masalah nyata)
 
 ======================================================================
