@@ -187,9 +187,11 @@ CARA DEFINISI ENDPOINT (WAJIB - Section 9): createRoute() +
 app.openapi() di vote.routes.ts, tags ['Votes'], schema Zod request
 DAN response (sukses + error 400/401/403/404/429). Query targets
 divalidasi dengan preprocess: string koma → array "type:id" (regex
-^(word|meaning|example|pronunciation|word_image):[0-9A-HJKMNP-TV-Z]{26}$),
-maks 50. Factory createVoteRoutes({ controller, authenticate }) -
-pola word.routes.ts. Dokumentasi otomatis di /docs.
+^(word|meaning|example|pronunciation|word_image):[0-9A-Za-z]{26}$
+- alfabet longgar, bukan Crockford ketat, karena fixture ULID
+handmade di repo memakai huruf bebas; guard sesungguhnya = cek
+eksistensi), maks 50. Factory createVoteRoutes({ controller,
+authenticate }) - pola word.routes.ts. Dokumentasi otomatis di /docs.
 
 KEAMANAN & CATATAN:
 - user_id SELALU dari token (c.get('user')), tidak pernah dari body.
