@@ -87,6 +87,9 @@ Table word_classes {
   code varchar(50) [not null, unique]
   name varchar(100) [not null]
 
+  // Nama lain yang lebih dikenal user (Verba → "Kata Kerja")
+  alias varchar(100)
+
   description text
 
   created_at timestamp [not null]

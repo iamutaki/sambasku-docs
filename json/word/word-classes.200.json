@@ -5,12 +5,24 @@
       "id": "01JDWCNOMINA00000000000000",
       "code": "n",
       "name": "Nomina",
+      "alias": "Kata Benda",
+      "description": "noun - kata yang menyebut orang, benda, tempat, atau konsep",
       "parent_id": null
     },
     {
-      "id": "01JDWCADV00000000000000000",
-      "code": "adv",
-      "name": "Adverbia",
+      "id": "01JDWCVERBA000000000000000",
+      "code": "v",
+      "name": "Verba",
+      "alias": "Kata Kerja",
+      "description": "verb - kata yang menyatakan perbuatan atau tindakan",
+      "parent_id": null
+    },
+    {
+      "id": "01JDWCUMUM0000000000000000",
+      "code": "umum",
+      "name": "Umum",
+      "alias": "Belum Diketahui",
+      "description": "generic - dipilih saat kelas kata belum diketahui atau tidak yakin",
       "parent_id": null
     }
   ]

@@ -24,6 +24,8 @@
           "id": "01JDWCADV00000000000000000A",
           "code": "adv",
           "name": "Adverbia",
+          "alias": "Kata Keterangan",
+          "description": "adverb - kata yang menjelaskan verba/adjektiva (waktu, tempat, cara, derajat)",
           "parent_id": null
         }
       }
