@@ -584,6 +584,67 @@ Aturan:
   `meta: { responsive: [...] }` (mis. `['lg']` = hanya tampil >= lg) —
   kombinasi dengan `fixed` jangan dipakai di kolom yang sama (kolom fixed
   selalu tampil di semua breakpoint).
+
+### Kolom Aksi Tabel — WAJIB Icon-only
+
+Tombol di kolom aksi tabel (tampilkan `fixed: 'right'`) memakai **ikon
+tanpa label teks** — `Button type="link" icon={<.../>} tooltip="<label>"`.
+Beberapa aksi berjajar (Detail/Ubah/Hapus) dengan label teks panjang akan
+memakan lebar kolom yang di-pin dan menimbulkan keraguan makna; ikon lazim
+sudah familiar dan `tooltip` antd menjelaskan avenir tiap tombol.
+
+- Setiap aksi satu ikon, makna lazim & konsisten lintas fitur:
+
+  | Aksi        | Ikon                 | Keterangan                              |
+  | ----------- | -------------------- | --------------------------------------- |
+  | Detail      | `EyeOutlined`        | Buka detail read-only                   |
+  | Ubah/Edit   | `EditOutlined`       | Buka form edit                          |
+  | Hapus/Delete| `DeleteOutlined`     | `danger` + WAJIB dibungkus `Popconfirm` |
+  | Review      | `CheckOutlined`/`ToolOutlined` | aksi antrean review/drawer     |
+
+- Setiap aksi WAJIB dibungkus `<Tooltip title="<label>">` supaya tanpa
+  label terlihat tetap aksesibel & tidak ambigu. antd v6 tidak menyediakan
+  prop `tooltip` di Button — gunakan komponen `Tooltip` secara eksplisit.
+- JANGAN pakai `MoreOutlined`/menu overflow untuk menyembunyikan aksi
+  tabel (diklik langsung, kurang satu langkah).
+- Contoh:
+
+  ```tsx
+  columnHelper.display({
+    id: 'actions',
+    header: 'Aksi',
+    size: 140,
+    meta: { fixed: 'right' },
+    cell: (info) => (
+      <Flex gap={0} wrap={false} align="center">
+        <Tooltip title="Detail">
+          <Button
+            type="link"
+            icon={<EyeOutlined />}
+            onClick={() => navigate({ to: '/words/$id', params: { id: info.row.original.id } })}
+          />
+        </Tooltip>
+        <Tooltip title="Ubah">
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => navigate({ to: '/words/$id/edit', params: { id: info.row.original.id } })}
+          />
+        </Tooltip>
+        <Popconfirm title="Hapus kata ini?" okText="Hapus" okButtonProps={{ danger: true }}>
+          <Tooltip title="Hapus">
+            <Button type="link" danger icon={<DeleteOutlined />} />
+          </Tooltip>
+        </Popconfirm>
+      </Flex>
+    ),
+  })
+  ```
+
+- Rule ini KHUSUS kolom aksi tabel. Tombol di luar tabel (PageHeader,
+  action bar form, tombol "Tambah Kata", dsb.) tetap boleh/ikut konvensi
+  label teks (boleh dengan ikon di sampingnya).
+
 - Filter di atas tabel: gunakan `Select`+`useDebouncedValue` untuk input
   teks (debounce 300ms), tombol "Muat ulang" panggil `refetch()`.
 
