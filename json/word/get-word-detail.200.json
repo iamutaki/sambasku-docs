@@ -63,6 +63,7 @@
       {
         "id": "01JDIMAGE0000000000000000",
         "url": "https://ik.imagekit.io/sambasku/words/makatn.jpg",
+        "provider_file_id": "file_media_abc123",
         "alt_text": "Ilustrasi makatn",
         "is_primary": true
       }
