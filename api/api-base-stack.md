@@ -1265,7 +1265,7 @@ palsu) dan brute force di endpoint sensitif.
 | Kategori endpoint           | Contoh                                                             | Limit                                   |
 | --------------------------- | ------------------------------------------------------------------ | --------------------------------------- |
 | Publik, baca saja           | `GET /api/v1/words`, `GET /api/v1/words/:id`                   | 100 request/menit per IP                |
-| Publik, tulis (belum login) | `POST /api/v1/auth/register`, `POST /api/v1/contributions/words` (submit kata anonim) | 5 request/jam per IP                    |
+| Publik, tulis (belum login) | `POST /api/v1/auth/register`, `POST /api/v1/contributions/words` (submit kata anonim) | Dua bucket: 5/jam per `X-Device-Id` + 20/jam per IP (`06-api-x-device-id.md`; register menyusul mengikuti) |
 | Auth sensitif               | `POST /api/v1/auth/login`, `POST /api/v1/auth/forgot-password` | 5 percobaan/15 menit per email+IP       |
 | Sudah login, tulis data     | `POST /api/v1/words` (submit kata), `POST /api/v1/words/:id/pronunciations` / `/:id/images`, `POST /api/v1/meanings/:id/examples` (kontribusi media) | 30 request/menit per user_id            |
 | Admin                       | Endpoint role admin/editor (termasuk antrean review `GET/POST /api/v1/admin/contributions/...`) | Longgar (500/menit) atau tidak dibatasi |
@@ -1652,6 +1652,10 @@ Aturan wajib tambahan (setara aturan Neon di atas):
   contoh kalimat)
 - `04-api-sinonim-inline.md` - sinonim BARU secara inline saat create word
   di POST /admin/words (inherit makna induk by default + override per makna)
+- `05-api-edit-kata.md` - edit kata existing (PUT /admin/words/:id +
+  GET detail admin untuk prefill; full-replace, delta dari 01)
+- `06-api-x-device-id.md` - rate limit anonim dual-bucket per-device
+  (header X-Device-Id dari mobile) + per-IP
 - `docs/dbdiagram.dbml` - skema database lengkap
 - `ERROR_CODES.md` - katalog error code (buat terpisah, lihat Section 13)
 - repo `http/` - koleksi Bruno untuk uji fungsional semua endpoint (Section 20)

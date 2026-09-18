@@ -354,8 +354,8 @@ KEAMANAN & CATATAN:
 - Deliverable termasuk koleksi Bruno: folder http/word/ berisi .bru
   per endpoint (POST admin/words, GET :id, search) + endpoint
   pendukung di modul masing-masing - Section 20, satu PR yang sama
-- Endpoint admin lain (update/soft-delete kata) menyusul di prompt
-  terpisah dengan pola yang sama
+- Endpoint admin lain: update kata ada di `05-api-edit-kata.md`
+  (pola sama dengan create); soft-delete menyusul di prompt terpisah
 - Antrean review (approve/reject/correct) + kontribusi media mandiri
   (gambar/pronounce/contoh pada kata existing): prompt terpisah -
   `03-api-kontribusi-verifikasi.md`

@@ -432,6 +432,10 @@ menduplikasi daftar di mobile, cukup perlakuan umum per kelompok).
 
 ## 13. Referensi Terkait
 
+- `docs/mobile/01-mobile-ulid-device-id.md` - device id ULID + header
+  X-Device-Id (rate limit anonim per-device, kontrak di
+  `docs/api/06-api-x-device-id.md`)
+
 - `docs/api/api-base-stack.md`: kontrak backend (envelope Section 13,
   pagination, error, auth mobile varian)
 - `docs/api/00-api-auth.md`: endpoint auth (termasuk client_type mobile)
