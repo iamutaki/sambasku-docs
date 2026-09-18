@@ -771,3 +771,61 @@ Table audit_logs {
     request_id
   }
 }
+
+// ============================================================
+// ENGAGEMENT - VOTE & KOMENTAR (08/09)
+// ============================================================
+
+Table votes {
+  id varchar(26) [pk]
+
+  user_id varchar(26) [not null, ref: > users.id]
+
+  // Target polymorphic - preseden contributions.entity_type/entity_id.
+  // Nilai: word | meaning | example | pronunciation | word_image | comment
+  entity_type varchar(50) [not null]
+  entity_id varchar(26) [not null]
+
+  // Arah vote: 1 = upvote, -1 = downvote.
+  // Toggle: vote searah kedua kali = baris dihapus (hard delete,
+  // TANPA deleted_at); ganti arah = update value.
+  // Jumlah vote SELALU dihitung on-read (count FILTER) - tanpa
+  // counter denormalized supaya tidak bisa drift
+  value smallint [not null]
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  Indexes {
+    (user_id, entity_type, entity_id) [unique]
+    (entity_type, entity_id)
+  }
+}
+
+Table comments {
+  id varchar(26) [pk]
+
+  // Terikat ke LEMMA (bukan polymorphic) - keputusan 09
+  word_id varchar(26) [not null, ref: > words.id]
+  user_id varchar(26) [not null, ref: > users.id]
+
+  body text [not null]
+
+  // Approval gate Section 22: komentar baru pending_review, tampil
+  // publik hanya setelah approve admin/root/reviewer (pre-moderation)
+  status varchar(30) [not null, default: 'pending_review']
+
+  reviewed_by varchar(26) [ref: > users.id]
+  reviewed_at timestamp
+
+  created_at timestamp [not null]
+  updated_at timestamp
+
+  deleted_at timestamp
+  deleted_by varchar(26) [ref: > users.id]
+
+  Indexes {
+    (word_id, status, id)
+    (status, id)
+  }
+}

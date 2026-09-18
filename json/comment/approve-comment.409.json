@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "COMMENT_ALREADY_REVIEWED",
+  "message": "Komentar sudah punya keputusan moderasi",
+  "details": null
+}

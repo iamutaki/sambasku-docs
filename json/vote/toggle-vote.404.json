@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "error_code": "VOTE_TARGET_NOT_FOUND",
+  "message": "Target vote tidak ditemukan atau sudah dihapus",
+  "details": null
+}

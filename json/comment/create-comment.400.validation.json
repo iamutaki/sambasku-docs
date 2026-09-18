@@ -1,0 +1,8 @@
+{
+  "success": false,
+  "error_code": "VALIDATION_ERROR",
+  "message": "Body request tidak valid",
+  "details": [
+    { "field": "body", "message": "Komentar wajib 1-1000 karakter" }
+  ]
+}

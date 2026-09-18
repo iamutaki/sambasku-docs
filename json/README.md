@@ -16,8 +16,8 @@ shared/error-envelope.401.json          → envelope error generik (dipakai semu
 ```
 
 Folder per modul: `auth/ language/ word/ contribution/ search-miss/
-category/ audit/ image/` - `shared/` berisi envelope error yang identik
-di semua endpoint (401/403/429).
+category/ audit/ image/ vote/ comment/` - `shared/` berisi envelope error
+yang identik di semua endpoint (401/403/429).
 
 ## Pemetaan endpoint → sample
 
@@ -55,6 +55,15 @@ di semua endpoint (401/403/429).
 | `GET /api/v1/categories` | `category/list-categories.200.json` |
 | `GET /api/v1/admin/audit-logs` | `audit/list-audit-logs.200.json`, `.200.password-change` |
 | `GET /api/v1/admin/images/upload-token` | `image/upload-token.200.json`, `.503` |
+| `POST /api/v1/votes` | `vote/toggle-vote.200.json`, `.200.toggle-off`, `.404` |
+| `GET /api/v1/votes/counts?targets=` | `vote/vote-counts.200.json` |
+| `GET /api/v1/votes/my?targets=` | `vote/my-votes.200.json` |
+| `GET /api/v1/words/:wordId/comments` | `comment/list-comments.200.json` |
+| `POST /api/v1/words/:wordId/comments` | `comment/create-comment.201.json`, `.400.validation` |
+| `DELETE /api/v1/comments/:id` | `comment/delete-comment.200.json` |
+| `GET /api/v1/admin/comments?status=` | `comment/admin-list-comments.200.json` |
+| `POST /api/v1/admin/comments/:id/approve` | `comment/approve-comment.200.json`, `.409` |
+| `POST /api/v1/admin/comments/:id/reject` | `comment/reject-comment.200.json` |
 
 ## Aturan sinkronisasi (WAJIB)
 
